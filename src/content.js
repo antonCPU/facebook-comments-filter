@@ -53,6 +53,8 @@ var Content = function(id, $el) {
   setInterval(function() {
     that.updateMode();
   }, 100);
+
+  that.updateMode();
 };
 
 Content.prototype.detectOwnerName = function() {
@@ -77,7 +79,13 @@ Content.prototype.toggleMode = function() {
 Content.prototype.updateMode = function() {
     if (this.mode === 'owner') {
       this.showOwnerComments();
+    } else {
+      this.$link.toggle(!!this.getCommentsCount());
     }
+};
+
+Content.prototype.getCommentsCount = function() {
+  return this.$el.find('.UFIComment').length;
 };
 
 Content.prototype.showOwnerComments = function() {
