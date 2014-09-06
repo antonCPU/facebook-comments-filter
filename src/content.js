@@ -1,5 +1,13 @@
 var Feed = function() {
+  var that = this;
+
   this.contentList = {};
+
+  setInterval(function() {
+    that.parseNew();
+  }, 1000);
+
+  this.parseNew();
 };
 
 Feed.prototype.parseNew = function() {
@@ -10,9 +18,8 @@ Feed.prototype.parseNew = function() {
         data = $el.parent().data('ft'),
         id  = data ? data.mf_story_key : null;
 
-    if (id && !that.contentList[id] && Content.isSuitable($el)) {
+    if (id && !that.contentList[id]) {
       that.contentList[id] = new Content(id, $el);
-      //$el.css('border', '2px solid red');
     }
   });
 };
@@ -24,10 +31,14 @@ var Content = function(id, $el) {
   this.$el = $el;
   this.mode = 'all';
 
-  this.authorName = $el.find('.profileLink').html();
+  this.ownerName = this.detectOwnerName();
+
+  if (!this.ownerName) {
+    return this;
+  }
 
   this.$link = $('<div class="show-comments" style="float:right;">'
-                   + '<a href="#" class="show-author-comments">View Author Comments</a>'
+                   + '<a href="#" class="show-author-comments">View ' + this.ownerName + ' Comments</a>'
                    + '<a href="#" class="show-all-comments" style="display:none;">View All Comments</a>'
                + '</div>');
 
@@ -42,20 +53,13 @@ var Content = function(id, $el) {
   }, 100);
 };
 
-Content.isSuitable = function($el) {
-  var $profileLink = $el.find('.profileLink');
-  if (!$profileLink.length) {
-    return false;
-  }
-
-  var name = $profileLink.text();
-
-  return $profileLink.closest('.fcg').text().replace(name, '').match(/commented/g);
+Content.prototype.detectOwnerName = function() {
+  return this.$el.find('a[data-hovercard]:not([aria-hidden]):eq(0)').html();
 };
 
 Content.prototype.toggleMode = function() {
   if (this.mode === 'all') {
-    this.showAuthorComments();
+    this.showOwnerComments();
     this.mode = 'author';
     this.$link.find('.show-author-comments').hide();
     this.$link.find('.show-all-comments').show();
@@ -69,12 +73,12 @@ Content.prototype.toggleMode = function() {
 
 Content.prototype.updateMode = function() {
     if (this.mode === 'author') {
-      this.showAuthorComments();
+      this.showOwnerComments();
     }
 };
 
-Content.prototype.showAuthorComments = function() {
-  var name = this.authorName,
+Content.prototype.showOwnerComments = function() {
+  var name = this.ownerName,
       count = 0;
 
   this.$el.find('.UFIComment').each(function() {
@@ -97,15 +101,14 @@ Content.prototype.showAllComments = function() {
 };
 
 Content.prototype.fetchComments = function() {
-  this.$el.find('.UFIPagerLink')[0].click();
+  var pager = this.$el.find('.UFIPagerLink')[0];
+
+  if (pager) {
+    pager.click();
+  }
 };
 
 // initialize
 var feed = new Feed();
-feed.parseNew();
-
-setInterval(function() {
-  feed.parseNew();
-}, 1000);
 
 console.log(feed);

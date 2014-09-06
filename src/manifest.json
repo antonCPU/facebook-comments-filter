@@ -2,8 +2,8 @@
   "manifest_version": 2,
 
   "name": "Comments Filter for Facebook",
-  "description": "This extension simplifies search of comments.",
-  "version": "0.1",
+  "description": "Simplifies search of comments.",
+  "version": "0.2",
 
   "content_scripts": [
     {
