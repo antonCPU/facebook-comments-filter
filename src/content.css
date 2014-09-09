@@ -1,0 +1,34 @@
+.fcf-content .fcf-show-comments {
+    float: right;
+}
+
+/* View all mode */
+.fcf-content .fcf-show-comments .fcf-show-all-comments {
+    display: none;
+}
+
+.fcf-content .fcf-no-comments {
+    text-align: center;
+    display: none;
+}
+
+/* Owner mode */
+.fcf-content.fcf-mode-owner .fcf-show-comments .fcf-show-owner-comments {
+    display: none;
+}
+
+.fcf-content.fcf-mode-owner .fcf-show-comments .fcf-show-all-comments {
+    display: block;
+}
+
+.fcf-content.fcf-mode-owner .UFIComment {
+    display: none;
+}
+
+.fcf-content.fcf-mode-owner .UFIComment.fcf-owner-comment {
+    display: block;
+}
+
+.fcf-content.fcf-mode-owner .fcf-no-comments {
+    display: block;
+}

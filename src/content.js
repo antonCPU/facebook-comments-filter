@@ -41,18 +41,18 @@ var Content = function(id, $el) {
     return this;
   }
 
-  this.$link = $('<div class="show-comments" style="float:right;">'
-                   + '<a href="#" class="show-owner-comments">View ' + this.ownerName + ' Comments</a>'
-                   + '<a href="#" class="show-all-comments" style="display:none;">View All Comments</a>'
+  this.$link = $('<div class="fcf-show-comments">'
+                   + '<a href="#" class="fcf-show-owner-comments">View ' + this.ownerName + ' Comments</a>'
+                   + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
                + '</div>');
-
-  $el.find('.UFILikeSentenceText').append(this.$link);
 
   this.$link.on('click', function() {
     that.toggleMode();
   });
 
-  this.$noComments = $('<li class="UFIRow no-comments" style="text-align:center;">No ' + this.ownerName + ' comments</li>');
+  this.$noComments = $('<li class="UFIRow fcf-no-comments">No ' + this.ownerName + ' comments</li>');
+
+  this.init();
 
   setInterval(function() {
     that.updateMode();
@@ -61,11 +61,17 @@ var Content = function(id, $el) {
   that.updateMode();
 };
 
+Content.prototype.init = function() {
+  this.$el.addClass('fcf-content');
+
+  this.$el.find('.UFILikeSentenceText').append(this.$link);
+};
+
 Content.prototype.refresh = function($el) {
   this.$el = $el;
 
-  if (!this.$el.find('.UFILikeSentenceText .show-comments').length) {
-    this.$el.find('.UFILikeSentenceText').append(this.$link);
+  if (!this.$el.hasClass('fcf-content')) {
+    this.init();
 
     this.updateMode();
   }
@@ -77,25 +83,21 @@ Content.prototype.detectOwnerName = function() {
 
 Content.prototype.toggleMode = function() {
   if (this.mode === 'all') {
-    this.showOwnerComments();
     this.mode = 'owner';
-    this.$link.find('.show-owner-comments').hide();
-    this.$link.find('.show-all-comments').show();
   } else {
-    this.showAllComments();
     this.mode = 'all';
-    this.$link.find('.show-owner-comments').show();
-    this.$link.find('.show-all-comments').hide();
-    this.toggleNoComments(false);
   }
+
+  this.updateMode();
 };
 
 Content.prototype.updateMode = function() {
-    if (this.mode === 'owner') {
-      this.showOwnerComments();
-    } else {
-      this.$link.toggle(!!this.getCommentsCount());
-    }
+  if (this.mode === 'owner') {
+    this.showOwnerComments();
+  } else {
+    this.$el.removeClass('fcf-mode-owner');
+    this.$link.toggle(!!this.getCommentsCount());
+  }
 };
 
 Content.prototype.getCommentsCount = function() {
@@ -106,12 +108,13 @@ Content.prototype.showOwnerComments = function() {
   var name = this.ownerName,
       count = 0;
 
+  this.$el.addClass('fcf-mode-owner');
+
   this.$el.find('.UFIComment').each(function() {
     var $comment = $(this);
 
-    if (name !== $comment.find('.UFICommentActorName').html()) {
-      $comment.hide();
-    } else {
+    if (name === $comment.find('.UFICommentActorName').html()) {
+      $comment.addClass('fcf-owner-comment');
       count++;
     }
   });
@@ -125,7 +128,7 @@ Content.prototype.showOwnerComments = function() {
 
 Content.prototype.toggleNoComments = function(needShow) {
   if (needShow) {
-    if (!this.$el.find('.UFIList .no-comments').length) {
+    if (!this.$el.find('.UFIList .fcf-no-comments').length) {
       if (this.$el.find('.UFIAddComment').length) {
         this.$el.find('.UFIAddComment').before(this.$noComments);
       } else {
@@ -133,12 +136,8 @@ Content.prototype.toggleNoComments = function(needShow) {
       }
     }
   } else {
-    this.$el.find('.no-comments').remove();
+    this.$el.find('.fcf-no-comments').remove();
   }
-};
-
-Content.prototype.showAllComments = function() {
-  this.$el.find('.UFIComment').show();
 };
 
 Content.prototype.fetchComments = function() {
