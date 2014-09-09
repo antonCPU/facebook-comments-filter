@@ -152,21 +152,5 @@ Content.prototype.fetchComments = function() {
   return false;
 };
 
-var PageState = function() {
-  this.currentUrl = window.location.href;
-
-  var that = this;
-
-  setInterval(function() {
-    if (that.currentUrl !== window.location.href) {
-      that.currentUrl = window.location.href;
-
-      that.onChange();
-    }
-  }, 1000);
-};
-
-PageState.prototype.onChange = function() {};
-
 // initialize
 var feed = new Feed();
