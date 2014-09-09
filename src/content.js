@@ -18,8 +18,12 @@ Feed.prototype.parseNew = function() {
         data = $el.parent().data('ft'),
         id  = data ? data.mf_story_key : null;
 
-    if (id && !that.contentList[id]) {
-      that.contentList[id] = new Content(id, $el);
+    if (id) {
+      if (!that.contentList[id]) {
+        that.contentList[id] = new Content(id, $el);
+      } else {
+        that.contentList[id].refresh($el);
+      }
     }
   });
 };
@@ -55,6 +59,16 @@ var Content = function(id, $el) {
   }, 100);
 
   that.updateMode();
+};
+
+Content.prototype.refresh = function($el) {
+  this.$el = $el;
+
+  if (!this.$el.find('.UFILikeSentenceText .show-comments').length) {
+    this.$el.find('.UFILikeSentenceText').append(this.$link);
+
+    this.updateMode();
+  }
 };
 
 Content.prototype.detectOwnerName = function() {
@@ -138,7 +152,21 @@ Content.prototype.fetchComments = function() {
   return false;
 };
 
+var PageState = function() {
+  this.currentUrl = window.location.href;
+
+  var that = this;
+
+  setInterval(function() {
+    if (that.currentUrl !== window.location.href) {
+      that.currentUrl = window.location.href;
+
+      that.onChange();
+    }
+  }, 1000);
+};
+
+PageState.prototype.onChange = function() {};
+
 // initialize
 var feed = new Feed();
-
-console.log(feed);
