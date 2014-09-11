@@ -32,3 +32,8 @@
 .fcf-content.fcf-mode-owner .fcf-no-comments {
     display: block;
 }
+
+/* Comments */
+.fcf-comment .fcf-search-author-comments {
+    float: right;
+}

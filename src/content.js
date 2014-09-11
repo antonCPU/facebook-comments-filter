@@ -98,6 +98,20 @@ Content.prototype.updateMode = function() {
     this.$el.removeClass('fcf-mode-owner');
     this.$link.toggle(!!this.getCommentsCount());
   }
+
+  this.processComments();
+};
+
+Content.prototype.processComments = function() {
+  this.$el.find('.UFIList .UFIComment:not(.fcf-comment)').each(function() {
+    var $comment = $(this);
+
+    $comment.addClass('fcf-comment');
+
+    if ($comment.find('.UFICommentBody a.profileLink').length) {
+      $comment.find('.UFICommentActions').append($('<a href="#" class="fcf-show-author-comments">Show comments</a>'));
+    }
+  });
 };
 
 Content.prototype.getCommentsCount = function() {
