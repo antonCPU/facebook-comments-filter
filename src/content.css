@@ -13,27 +13,27 @@
 }
 
 /* Owner mode */
-.fcf-content.fcf-mode-owner .fcf-show-comments .fcf-show-owner-comments {
+.fcf-content .fcf-mode-owner .fcf-show-comments .fcf-show-owner-comments {
     display: none;
 }
 
-.fcf-content.fcf-mode-owner .fcf-show-comments .fcf-show-all-comments {
+.fcf-content .fcf-mode-owner .fcf-show-comments .fcf-show-all-comments {
     display: block;
 }
 
-.fcf-content.fcf-mode-owner .UFIComment {
+.fcf-content .fcf-mode-owner .UFIComment {
     display: none;
 }
 
-.fcf-content.fcf-mode-owner .UFIComment.fcf-owner-comment {
+.fcf-content .fcf-mode-owner .UFIComment.fcf-owner-comment {
     display: block;
 }
 
-.fcf-content.fcf-mode-owner .fcf-no-comments {
+.fcf-content .fcf-mode-owner .fcf-no-comments {
     display: block;
 }
 
 /* Comments */
-.fcf-comment .fcf-search-author-comments {
+.fcf-comment .fcf-show-author-comments {
     float: right;
 }
