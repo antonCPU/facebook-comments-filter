@@ -73,27 +73,27 @@ var CommentList = function($el, owner) {
   var that = this;
 
   this.$link.on('click', function() {
-    that.toggleMode();
+    that.toggleAuthorFilter();
   });
 
   this.$noComments = $('<li class="UFIRow fcf-no-comments">No ' + this.owner.name + ' comments</li>');
 
   setInterval(function() {
-    that.updateMode();
-  }, 100);
+    that.update();
+  }, 5000);
 
   this.init();
 };
 
 CommentList.prototype.init = function() {
-  this.mode = 'all';
   this.comments = [];
+  this.authorFilters = [];
 
   this.$el.addClass('fcf-comment-list');
 
   this.$el.find('.UFILikeSentenceText').append(this.$link);
 
-  this.updateMode();
+  this.update();
 };
 
 CommentList.prototype.refresh = function($el) {
@@ -104,7 +104,7 @@ CommentList.prototype.refresh = function($el) {
   }
 };
 
-CommentList.prototype.processComments = function() {
+CommentList.prototype.processNewComments = function() {
   var that = this;
 
   this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
@@ -112,48 +112,55 @@ CommentList.prototype.processComments = function() {
 
     $comment.addClass('fcf-comment');
 
-    that.comments.push(new Comment($comment));
+    var comment = new Comment($comment);
+
+    comment.onClickShowAuthor = function() {
+      that.authorFilters.push(this.mentionedUser.id);
+
+      that.filterAuthorComments();
+    };
+
+    that.comments.push(comment);
   });
 };
 
-CommentList.prototype.toggleMode = function() {
-  if (this.mode === 'all') {
-    this.mode = 'owner';
-  } else {
-    this.mode = 'all';
+CommentList.prototype.toggleAuthorFilter = function() {
+  this.authorFilters = this.authorFilters.length ? [] : [this.owner.id];
+
+  this.$el.toggleClass('fcf-filter-mode', !!this.authorFilters.length);
+
+  if (!this.authorFilters.length) {
+    this.$link.toggle(!!this.getCount());
   }
 
-  this.updateMode();
+  this.update();
 };
 
-CommentList.prototype.updateMode = function() {
-  if (this.mode === 'owner') {
-    this.showOwnerComments();
-  } else {
-    this.$el.removeClass('fcf-mode-owner');
-    this.$link.toggle(!!this.getCommentsCount());
+CommentList.prototype.update = function() {
+  this.processNewComments();
+
+  if (this.authorFilters.length) {
+    this.filterAuthorComments();
   }
-
-  this.processComments();
 };
 
-CommentList.prototype.getCommentsCount = function() {
-  return this.$el.find('.UFIComment').length;
+CommentList.prototype.getCount = function() {
+  return this.$el.find('.fcf-comment').length;
 };
 
-CommentList.prototype.showOwnerComments = function() {
-  var name = this.owner.name,
-    count = 0;
+CommentList.prototype.filterAuthorComments = function() {
+  var filters = this.authorFilters,
+      count = 0;
 
-  this.$el.addClass('fcf-mode-owner');
+  this.comments.forEach(function(comment) {
+    var isVisible = false;
 
-  this.$el.find('.UFIComment').each(function() {
-    var $comment = $(this);
-
-    if (name === $comment.find('.UFICommentActorName').html()) {
-      $comment.addClass('fcf-owner-comment');
-      count++;
+    if (-1 !== filters.indexOf(comment.author.id)) {
+      isVisible = true;
+      count++
     }
+
+    comment.$el.toggleClass('fcf-comment-visible', isVisible);
   });
 
   if (!count && !this.fetchComments()) {
@@ -204,6 +211,7 @@ var Comment = function($el) {
 
     this.$showAuthorComments.on('click', function() {
       that.mentionedUser = new Profile($mentionedProfileLink);
+
       that.onClickShowAuthor();
     });
   }
