@@ -150,14 +150,15 @@ CommentList.prototype.getCount = function() {
 
 CommentList.prototype.filterAuthorComments = function() {
   var filters = this.authorFilters,
-      count = 0;
+      notFoundAuthors = filters.slice();
 
   this.comments.forEach(function(comment) {
-    var isVisible = false;
+    var isVisible = false,
+      filterIndex = filters.indexOf(comment.author.id);
 
-    if (-1 !== filters.indexOf(comment.author.id)) {
+    if (-1 !== filterIndex) {
       isVisible = true;
-      count++
+      delete notFoundAuthors[filterIndex];
     }
 
     comment.toggleVisible(isVisible);
@@ -171,7 +172,7 @@ CommentList.prototype.filterAuthorComments = function() {
     }
   });
 
-  if (!count && !this.fetchComments()) {
+  if (notFoundAuthors.filter(Number).length && !this.fetchComments()) {
     this.toggleNoComments(true);
   } else {
     this.toggleNoComments(false);
