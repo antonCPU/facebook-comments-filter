@@ -141,6 +141,8 @@ CommentList.prototype.update = function() {
 
   if (this.authorFilters.length) {
     this.filterAuthorComments();
+  } else {
+    this.$link.toggle(!!this.getCount());
   }
 };
 
