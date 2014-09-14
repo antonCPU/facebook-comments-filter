@@ -39,9 +39,5 @@
 
 .fcf-content .fcf-filter-mode .fcf-comment .fcf-show-author-comments {
     display: block;
-}
-
-/* Comments */
-.fcf-comment .fcf-show-author-comments {
     float: right;
 }

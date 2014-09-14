@@ -80,7 +80,7 @@ var CommentList = function($el, owner) {
 
   setInterval(function() {
     that.update();
-  }, 5000);
+  }, 200);
 
   this.init();
 };
@@ -160,7 +160,15 @@ CommentList.prototype.filterAuthorComments = function() {
       count++
     }
 
-    comment.$el.toggleClass('fcf-comment-visible', isVisible);
+    comment.toggleVisible(isVisible);
+
+    var mentionedUser = comment.getMentionedUser();
+
+    if (mentionedUser && (-1 === filters.indexOf(mentionedUser.id))) {
+      comment.toggleActions(true);
+    } else {
+      comment.toggleActions(false);
+    }
   });
 
   if (!count && !this.fetchComments()) {
@@ -199,29 +207,61 @@ var Comment = function($el) {
   this.$el = $el;
 
   this.author = new Profile($el.find('.UFICommentActorName'));
+  this.mentionedUser = null;
+};
 
+Comment.prototype.toggleActions = function(show) {
   var that = this;
 
-  var $mentionedProfileLink = $el.find('.UFICommentBody a.profileLink');
+  if (show) {
+    var mentionedUser = this.getMentionedUser();
+
+    if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
+      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show ' + mentionedUser.name + ' comments</a>');
+
+      this.$el.find('.UFICommentActions').append(this.$showAuthorComments);
+
+      this.$showAuthorComments.on('click', function() {
+        that.onClickShowAuthor();
+      });
+    } else {
+      this.$el.find('.fcf-show-author-comments').show();
+    }
+  } else {
+    this.$el.find('.fcf-show-author-comments').hide();
+  }
+};
+
+Comment.prototype.getMentionedUser = function() {
+  if (this.mentionedUser) {
+    return this.mentionedUser;
+  }
+
+  var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
 
   if ($mentionedProfileLink.length) {
-    this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show comments</a>');
-
-    $el.find('.UFICommentActions').append(this.$showAuthorComments);
-
-    this.$showAuthorComments.on('click', function() {
-      that.mentionedUser = new Profile($mentionedProfileLink);
-
-      that.onClickShowAuthor();
-    });
+    this.mentionedUser = new Profile($mentionedProfileLink);
   }
+
+  return this.mentionedUser;
+};
+
+Comment.prototype.toggleVisible = function(show) {
+  this.$el.toggleClass('fcf-comment-visible', show);
 };
 
 Comment.prototype.onClickShowAuthor = function() {};
 
 var Profile = function($link) {
+  this.id = null;
+  this.name = null;
+
+  if (!$link.data('hovercard')) {
+    return;
+  }
+
   this.id = $link.data('hovercard').match(/\?id=([^&.]+)/)[1];
-  this.name = $link.html()
+  this.name = $link.html();
 };
 
 // initialize
