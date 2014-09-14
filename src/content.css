@@ -12,23 +12,32 @@
     display: none;
 }
 
-/* Owner mode */
-.fcf-content.fcf-mode-owner .fcf-show-comments .fcf-show-owner-comments {
+.fcf-content .fcf-comment-list .fcf-show-author-comments {
     display: none;
 }
 
-.fcf-content.fcf-mode-owner .fcf-show-comments .fcf-show-all-comments {
-    display: block;
-}
-
-.fcf-content.fcf-mode-owner .UFIComment {
+/* Filter mode */
+.fcf-content .fcf-filter-mode .fcf-show-comments .fcf-show-owner-comments {
     display: none;
 }
 
-.fcf-content.fcf-mode-owner .UFIComment.fcf-owner-comment {
+.fcf-content .fcf-filter-mode .fcf-show-comments .fcf-show-all-comments {
     display: block;
 }
 
-.fcf-content.fcf-mode-owner .fcf-no-comments {
+.fcf-content .fcf-filter-mode .UFIComment {
+    display: none;
+}
+
+.fcf-content .fcf-filter-mode .fcf-comment.fcf-comment-visible {
     display: block;
+}
+
+.fcf-content .fcf-filter-mode .fcf-no-comments {
+    display: block;
+}
+
+.fcf-content .fcf-filter-mode .fcf-comment .fcf-show-author-comments {
+    display: block;
+    float: right;
 }

@@ -29,42 +29,22 @@ Feed.prototype.parseNew = function() {
 };
 
 var Content = function(id, $el) {
-  var that = this;
-
   this.id  = id;
   this.$el = $el;
-  this.mode = 'all';
 
-  this.ownerName = this.detectOwnerName();
+  this.owner = this.detectOwner();
 
-  if (!this.ownerName) {
-    return this;
+  if (!this.owner.name) {
+    return;
   }
 
-  this.$link = $('<div class="fcf-show-comments">'
-                   + '<a href="#" class="fcf-show-owner-comments">View ' + this.ownerName + ' Comments</a>'
-                   + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
-               + '</div>');
-
-  this.$link.on('click', function() {
-    that.toggleMode();
-  });
-
-  this.$noComments = $('<li class="UFIRow fcf-no-comments">No ' + this.ownerName + ' comments</li>');
+  this.comments = new CommentList($el.find('.UFIList'), this.owner);
 
   this.init();
-
-  setInterval(function() {
-    that.updateMode();
-  }, 100);
-
-  that.updateMode();
 };
 
 Content.prototype.init = function() {
   this.$el.addClass('fcf-content');
-
-  this.$el.find('.UFILikeSentenceText').append(this.$link);
 };
 
 Content.prototype.refresh = function($el) {
@@ -73,66 +53,141 @@ Content.prototype.refresh = function($el) {
   if (!this.$el.hasClass('fcf-content')) {
     this.init();
 
-    this.updateMode();
+    this.comments.refresh($el.find('.UFIList'));
   }
 };
 
-Content.prototype.detectOwnerName = function() {
-  return this.$el.find('a[data-hovercard]:not([aria-hidden]):eq(0)').html();
+Content.prototype.detectOwner = function() {
+  return new Profile(this.$el.find('a[data-hovercard]:not([aria-hidden]):eq(0)'));
 };
 
-Content.prototype.toggleMode = function() {
-  if (this.mode === 'all') {
-    this.mode = 'owner';
-  } else {
-    this.mode = 'all';
+var CommentList = function($el, owner) {
+  this.$el = $el;
+  this.owner = owner;
+
+  this.$link = $('<div class="fcf-show-comments">'
+    + '<a href="#" class="fcf-show-owner-comments">View ' + this.owner.name + ' Comments</a>'
+    + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
+    + '</div>');
+
+  var that = this;
+
+  this.$link.on('click', function() {
+    that.toggleAuthorFilter();
+  });
+
+  this.$noComments = $('<li class="UFIRow fcf-no-comments">No ' + this.owner.name + ' comments</li>');
+
+  setInterval(function() {
+    that.update();
+  }, 200);
+
+  this.init();
+};
+
+CommentList.prototype.init = function() {
+  this.comments = [];
+  this.authorFilters = [];
+
+  this.$el.addClass('fcf-comment-list');
+
+  this.$el.find('.UFILikeSentenceText').append(this.$link);
+
+  this.update();
+};
+
+CommentList.prototype.refresh = function($el) {
+  this.$el = $el;
+
+  if (!this.$el.hasClass('fcf-comment-list')) {
+    this.init();
   }
-
-  this.updateMode();
 };
 
-Content.prototype.updateMode = function() {
-  if (this.mode === 'owner') {
-    this.showOwnerComments();
-  } else {
-    this.$el.removeClass('fcf-mode-owner');
-    this.$link.toggle(!!this.getCommentsCount());
-  }
-};
+CommentList.prototype.processNewComments = function() {
+  var that = this;
 
-Content.prototype.getCommentsCount = function() {
-  return this.$el.find('.UFIComment').length;
-};
-
-Content.prototype.showOwnerComments = function() {
-  var name = this.ownerName,
-      count = 0;
-
-  this.$el.addClass('fcf-mode-owner');
-
-  this.$el.find('.UFIComment').each(function() {
+  this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
     var $comment = $(this);
 
-    if (name === $comment.find('.UFICommentActorName').html()) {
-      $comment.addClass('fcf-owner-comment');
-      count++;
+    $comment.addClass('fcf-comment');
+
+    var comment = new Comment($comment);
+
+    comment.onClickShowAuthor = function() {
+      that.authorFilters.push(this.mentionedUser.id);
+
+      that.filterAuthorComments();
+    };
+
+    that.comments.push(comment);
+  });
+};
+
+CommentList.prototype.toggleAuthorFilter = function() {
+  this.authorFilters = this.authorFilters.length ? [] : [this.owner.id];
+
+  this.$el.toggleClass('fcf-filter-mode', !!this.authorFilters.length);
+
+  if (!this.authorFilters.length) {
+    this.$link.toggle(!!this.getCount());
+  }
+
+  this.update();
+};
+
+CommentList.prototype.update = function() {
+  this.processNewComments();
+
+  if (this.authorFilters.length) {
+    this.filterAuthorComments();
+  } else {
+    this.$link.toggle(!!this.getCount());
+  }
+};
+
+CommentList.prototype.getCount = function() {
+  return this.$el.find('.fcf-comment').length;
+};
+
+CommentList.prototype.filterAuthorComments = function() {
+  var filters = this.authorFilters,
+      notFoundAuthors = filters.slice();
+
+  this.comments.forEach(function(comment) {
+    var isVisible = false,
+      filterIndex = filters.indexOf(comment.author.id);
+
+    if (-1 !== filterIndex) {
+      isVisible = true;
+      delete notFoundAuthors[filterIndex];
+    }
+
+    comment.toggleVisible(isVisible);
+
+    var mentionedUser = comment.getMentionedUser();
+
+    if (mentionedUser && (-1 === filters.indexOf(mentionedUser.id))) {
+      comment.toggleActions(true);
+    } else {
+      comment.toggleActions(false);
     }
   });
 
-  if (!count && !this.fetchComments()) {
+  if (notFoundAuthors.filter(Number).length && !this.fetchComments()) {
     this.toggleNoComments(true);
   } else {
     this.toggleNoComments(false);
   }
 };
 
-Content.prototype.toggleNoComments = function(needShow) {
+CommentList.prototype.toggleNoComments = function(needShow) {
   if (needShow) {
-    if (!this.$el.find('.UFIList .fcf-no-comments').length) {
+    if (!this.$el.find('.fcf-no-comments').length) {
       if (this.$el.find('.UFIAddComment').length) {
         this.$el.find('.UFIAddComment').before(this.$noComments);
       } else {
-        this.$el.find('.UFIList').append(this.$noComments);
+        this.$el.append(this.$noComments);
       }
     }
   } else {
@@ -140,7 +195,7 @@ Content.prototype.toggleNoComments = function(needShow) {
   }
 };
 
-Content.prototype.fetchComments = function() {
+CommentList.prototype.fetchComments = function() {
   var pager = this.$el.find('.UFIPagerLink')[0];
 
   if (pager) {
@@ -149,6 +204,67 @@ Content.prototype.fetchComments = function() {
   }
 
   return false;
+};
+
+var Comment = function($el) {
+  this.$el = $el;
+
+  this.author = new Profile($el.find('.UFICommentActorName'));
+  this.mentionedUser = null;
+};
+
+Comment.prototype.toggleActions = function(show) {
+  var that = this;
+
+  if (show) {
+    var mentionedUser = this.getMentionedUser();
+
+    if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
+      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show ' + mentionedUser.name + ' comments</a>');
+
+      this.$el.find('.UFICommentActions').append(this.$showAuthorComments);
+
+      this.$showAuthorComments.on('click', function() {
+        that.onClickShowAuthor();
+      });
+    } else {
+      this.$el.find('.fcf-show-author-comments').show();
+    }
+  } else {
+    this.$el.find('.fcf-show-author-comments').hide();
+  }
+};
+
+Comment.prototype.getMentionedUser = function() {
+  if (this.mentionedUser) {
+    return this.mentionedUser;
+  }
+
+  var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
+
+  if ($mentionedProfileLink.length) {
+    this.mentionedUser = new Profile($mentionedProfileLink);
+  }
+
+  return this.mentionedUser;
+};
+
+Comment.prototype.toggleVisible = function(show) {
+  this.$el.toggleClass('fcf-comment-visible', show);
+};
+
+Comment.prototype.onClickShowAuthor = function() {};
+
+var Profile = function($link) {
+  this.id = null;
+  this.name = null;
+
+  if (!$link.data('hovercard')) {
+    return;
+  }
+
+  this.id = $link.data('hovercard').match(/\?id=([^&.]+)/)[1];
+  this.name = $link.html();
 };
 
 // initialize
