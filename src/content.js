@@ -34,7 +34,7 @@ var Content = function(id, $el) {
 
   this.owner = this.detectOwner();
 
-  if (!this.owner.name) {
+  if (!this.owner.getName()) {
     return;
   }
 
@@ -66,7 +66,7 @@ var CommentList = function($el, owner) {
   this.owner = owner;
 
   this.$link = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments">View ' + this.owner.name + ' Comments</a>'
+    + '<a href="#" class="fcf-show-owner-comments">View ' + this.owner.getName() + ' Comments</a>'
     + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
     + '</div>');
 
@@ -76,7 +76,7 @@ var CommentList = function($el, owner) {
     that.toggleAuthorFilter();
   });
 
-  this.$noComments = $('<li class="UFIRow fcf-no-comments">No ' + this.owner.name + ' comments</li>');
+  this.$noComments = $('<li class="UFIRow fcf-no-comments">No comments</li>');
 
   setInterval(function() {
     that.update();
@@ -115,7 +115,7 @@ CommentList.prototype.processNewComments = function() {
     var comment = new Comment($comment);
 
     comment.onClickShowAuthor = function() {
-      that.authorFilters.push(this.mentionedUser.id);
+      that.authorFilters.push(this.mentionedUser.getId());
 
       that.filterAuthorComments();
     };
@@ -125,7 +125,7 @@ CommentList.prototype.processNewComments = function() {
 };
 
 CommentList.prototype.toggleAuthorFilter = function() {
-  this.authorFilters = this.authorFilters.length ? [] : [this.owner.id];
+  this.authorFilters = this.authorFilters.length ? [] : [this.owner.getId()];
 
   this.$el.toggleClass('fcf-filter-mode', !!this.authorFilters.length);
 
@@ -156,7 +156,7 @@ CommentList.prototype.filterAuthorComments = function() {
 
   this.comments.forEach(function(comment) {
     var isVisible = false,
-      filterIndex = filters.indexOf(comment.author.id);
+      filterIndex = filters.indexOf(comment.author.getId());
 
     if (-1 !== filterIndex) {
       isVisible = true;
@@ -167,7 +167,7 @@ CommentList.prototype.filterAuthorComments = function() {
 
     var mentionedUser = comment.getMentionedUser();
 
-    if (mentionedUser && (-1 === filters.indexOf(mentionedUser.id))) {
+    if (mentionedUser && (-1 === filters.indexOf(mentionedUser.getId()))) {
       comment.toggleActions(true);
     } else {
       comment.toggleActions(false);
@@ -220,7 +220,7 @@ Comment.prototype.toggleActions = function(show) {
     var mentionedUser = this.getMentionedUser();
 
     if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
-      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show ' + mentionedUser.name + ' comments</a>');
+      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show ' + mentionedUser.getName() + ' comments</a>');
 
       this.$el.find('.UFICommentActions').append(this.$showAuthorComments);
 
@@ -256,15 +256,31 @@ Comment.prototype.toggleVisible = function(show) {
 Comment.prototype.onClickShowAuthor = function() {};
 
 var Profile = function($link) {
+  this.$el = $link;
+
   this.id = null;
   this.name = null;
 
   if (!$link.data('hovercard')) {
-    return;
+    this.id   = false;
+    this.name = false;
+  }
+};
+
+Profile.prototype.getId = function() {
+  if (this.id === null) {
+    this.id = this.$el.data('hovercard').match(/\?id=([^&.]+)/)[1]
   }
 
-  this.id = $link.data('hovercard').match(/\?id=([^&.]+)/)[1];
-  this.name = $link.html();
+  return this.id;
+};
+
+Profile.prototype.getName = function() {
+  if (this.name === null) {
+    this.name = this.$el.html();
+  }
+
+  return this.name;
 };
 
 // initialize
