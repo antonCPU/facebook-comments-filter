@@ -66,7 +66,7 @@ var CommentList = function($el, owner) {
   this.owner = owner;
 
   this.$link = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments">View ' + this.owner.getName() + ' Comments</a>'
+    + '<a href="#" class="fcf-show-owner-comments" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
     + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
     + '</div>');
 
@@ -91,7 +91,12 @@ CommentList.prototype.init = function() {
 
   this.$el.addClass('fcf-comment-list');
 
-  this.$el.find('.UFILikeSentenceText').append(this.$link);
+  var that = this;
+
+  this.owner.fetchImageUrl(function(imageUrl) {
+    that.$link.find('img').attr('src', imageUrl);
+    that.$el.find('.UFILikeSentenceText').append(that.$link);
+  });
 
   this.update();
 };
@@ -260,10 +265,12 @@ var Profile = function($link) {
 
   this.id = null;
   this.name = null;
+  this.imageUrl = null;
 
   if (!$link.data('hovercard')) {
     this.id   = false;
     this.name = false;
+    this.imageUrl = false;
   }
 };
 
@@ -281,6 +288,38 @@ Profile.prototype.getName = function() {
   }
 
   return this.name;
+};
+
+Profile.prototype.fetchImageUrl = function(callback) {
+  if (this.imageUrl === null) {
+    var that = this;
+
+    this.fetchHovercardImageUrl(function(imageUrl) {
+      that.imageUrl = imageUrl;
+
+      callback(imageUrl);
+    });
+  } else {
+    callback(this.imageUrl);
+  }
+};
+
+Profile.prototype.fetchHovercardImageUrl = function(callback) {
+  var url = this.$el.data('hovercard');
+  url += '&endpoint=' + encodeURIComponent(url);
+  url += '&__a=1';
+
+  $.ajax({
+    type: 'GET',
+    dataType: 'text',
+    url: url,
+    success: function(data) {
+      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/).pop();
+      imageUrl = JSON.parse('"' + imageUrl + '"').replace(/&amp;/g, '&');
+
+      callback(imageUrl);
+    }
+  });
 };
 
 // initialize
