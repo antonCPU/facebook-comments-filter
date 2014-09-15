@@ -225,9 +225,12 @@ Comment.prototype.toggleActions = function(show) {
     var mentionedUser = this.getMentionedUser();
 
     if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
-      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show ' + mentionedUser.getName() + ' comments</a>');
+      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments" title="Show ' + mentionedUser.getName() + ' comments"><img src="" width="20" height="20" /></a>');
 
-      this.$el.find('.UFICommentActions').append(this.$showAuthorComments);
+      mentionedUser.fetchImageUrl(function(imageUrl) {
+        that.$showAuthorComments.find('img').attr('src', imageUrl);
+        that.$el.find('.UFICommentActions').append(that.$showAuthorComments);
+      });
 
       this.$showAuthorComments.on('click', function() {
         that.onClickShowAuthor();

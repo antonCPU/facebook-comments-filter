@@ -45,5 +45,7 @@
 
 .fcf-content .fcf-filter-mode .fcf-comment .fcf-show-author-comments {
     display: block;
-    float: right;
+    position: absolute;
+    right: 0;
+    bottom: -4px;
 }
