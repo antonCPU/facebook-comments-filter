@@ -84,10 +84,15 @@ Profile.prototype.fetchHovercardImageUrl = function(callback) {
     dataType: 'text',
     url: url,
     success: function(data) {
-      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/).pop();
-      imageUrl = JSON.parse('"' + imageUrl + '"').replace(/&amp;/g, '&');
+      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/);
 
-      callback(imageUrl);
+      if (!imageUrl) {
+        callback(false);
+      } else {
+        imageUrl = JSON.parse('"' + imageUrl.pop() + '"').replace(/&amp;/g, '&');
+
+        callback(imageUrl);
+      }
     }
   });
 };
@@ -255,12 +260,14 @@ CommentList.prototype.filterAuthorComments = function() {
 
     comment.toggleVisible(isVisible);
 
-    var mentionedUser = comment.getMentionedUser();
+    if (isVisible) {
+      var mentionedUser = comment.getMentionedUser();
 
-    if (mentionedUser && (-1 === filters.indexOf(mentionedUser.getId()))) {
-      comment.toggleActions(true);
-    } else {
-      comment.toggleActions(false);
+      if (mentionedUser && (-1 === filters.indexOf(mentionedUser.getId()))) {
+        comment.toggleActions(true);
+      } else {
+        comment.toggleActions(false);
+      }
     }
   });
 
@@ -336,7 +343,8 @@ Comment.prototype.getMentionedUser = function() {
 
     if ($mentionedProfileLink.length) {
       var mentionedUser = new Profile($mentionedProfileLink);
-      this.mentionedUser = mentionedUser.id ? mentionedUser : false;
+      this.mentionedUser = mentionedUser.getId() ? mentionedUser : false;
+
     }
   }
 
