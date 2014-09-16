@@ -189,7 +189,7 @@ CommentList.prototype.init = function() {
   var that = this;
 
   this.owner.fetchImageUrl(function(imageUrl) {
-    that.$panel.find('img').attr('src', imageUrl);
+    that.$panel.find('.fcf-show-owner-comments img').attr('src', imageUrl);
     that.$el.find('.UFILikeSentenceText').append(that.$panel);
   });
 
@@ -453,7 +453,12 @@ UserFilterView.prototype.update = function() {
 
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
-      $userList.append('<li data-id="' + user.getId() + '"><a href="#">' + user.getName() + '</a></li>');
+      var $user = $('<li data-id="' + user.getId() + '"><a href="#"><img src="" width="23" height="23" />' + user.getName() + '</a></li>');
+      user.fetchImageUrl(function(imageUrl) {
+        $user.find('img').attr('src', imageUrl);
+      });
+
+      $userList.append($user);
       count++;
     }
   });

@@ -26,6 +26,15 @@
     border: 1px solid #000000;
 }
 
+.fcf-content .fcf-show-comments .fcf-user-filter-list li {
+    margin: 5px;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-list img {
+    vertical-align: middle;
+    padding-right: 5px;
+}
+
 /* View all mode */
 .fcf-content .fcf-show-comments .fcf-show-all-comments {
     display: none;
