@@ -156,14 +156,18 @@ var CommentList = function($el, owner) {
   this.owner = owner;
 
   this.$panel = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments fcf-toggle-mode" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
+    + '<a href="#" class="fcf-show-owner-comments" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
     + '<a href="#" class="fcf-show-all-comments fcf-toggle-mode">View All Comments</a>'
     + '</div>');
 
   var that = this;
 
-  this.$panel.find('a.fcf-toggle-mode').on('click', function() {
-    that.toggleAuthorFilter();
+  this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
+    that.authorFilter.add(that.owner);
+  });
+
+  this.$panel.find('a.fcf-show-all-comments').on('click', function() {
+    that.authorFilter.clear();
   });
 
   this.$noComments = $('<li class="UFIRow fcf-no-comments">No comments</li>');
@@ -177,7 +181,7 @@ var CommentList = function($el, owner) {
 
 CommentList.prototype.init = function() {
   this.comments = [];
-  this.authorFilters = [];
+  this.authorFilter = new UserFilter();
   this.users = new UserList();
 
   this.$el.addClass('fcf-comment-list');
@@ -189,7 +193,11 @@ CommentList.prototype.init = function() {
     that.$el.find('.UFILikeSentenceText').append(that.$panel);
   });
 
-  this.userFilterView = new UserFilterView(this.$panel, this.authorFilters, this.users);
+  this.userFilterView = new UserFilterView(this.$panel, this.authorFilter, this.users);
+
+  this.authorFilter.onChange(function() {
+    that.filterAuthorComments();
+  });
 
   this.update();
 };
@@ -203,8 +211,7 @@ CommentList.prototype.refresh = function($el) {
 };
 
 CommentList.prototype.processNewComments = function() {
-  var that = this,
-    userCount = this.users.length;
+  var that = this;
 
   this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
     var $comment = $(this);
@@ -214,35 +221,21 @@ CommentList.prototype.processNewComments = function() {
     var comment = new Comment($comment);
 
     comment.onClickShowAuthor = function() {
-      that.authorFilters.push(this.mentionedUser.getId());
-
-      that.filterAuthorComments();
+      that.authorFilter.add(this.mentionedUser);
     };
 
     that.comments.push(comment);
 
     that.users.add(comment.author);
   });
-
-  if (this.users.length > userCount) {
-    this.userFilterView.update();
-  }
-};
-
-CommentList.prototype.toggleAuthorFilter = function() {
-  this.authorFilters = this.authorFilters.length ? [] : [this.owner.getId()];
-
-  this.$el.toggleClass('fcf-filter-mode', !!this.authorFilters.length);
-
-  this.update();
 };
 
 CommentList.prototype.update = function() {
   this.processNewComments();
 
-  if (this.authorFilters.length) {
-    this.filterAuthorComments();
-  } else {
+  this.filterAuthorComments();
+
+  if (!this.authorFilter.length) {
     this.$panel.toggle(!!this.getCount());
   }
 };
@@ -252,16 +245,24 @@ CommentList.prototype.getCount = function() {
 };
 
 CommentList.prototype.filterAuthorComments = function() {
-  var filters = this.authorFilters,
-      notFoundAuthors = filters.slice();
+  var filter = this.authorFilter,
+      notFoundAuthors = filter.getIds();
+
+  this.$el.toggleClass('fcf-filter-mode', !!filter.length);
+
+  if (!filter.length) {
+    return;
+  }
 
   this.comments.forEach(function(comment) {
-    var isVisible = false,
-      filterIndex = filters.indexOf(comment.author.getId());
+    var isVisible = false;
 
-    if (-1 !== filterIndex) {
+    if (filter.hasId(comment.author.getId())) {
       isVisible = true;
-      delete notFoundAuthors[filterIndex];
+      var index = notFoundAuthors.indexOf(comment.author.getId());
+      if (-1 !== index) {
+        delete notFoundAuthors[index];
+      }
     }
 
     comment.toggleVisible(isVisible);
@@ -269,7 +270,7 @@ CommentList.prototype.filterAuthorComments = function() {
     if (isVisible) {
       var mentionedUser = comment.getMentionedUser();
 
-      if (mentionedUser && (-1 === filters.indexOf(mentionedUser.getId()))) {
+      if (mentionedUser && !filter.hasId(mentionedUser.getId())) {
         comment.toggleActions(true);
       } else {
         comment.toggleActions(false);
@@ -313,13 +314,29 @@ CommentList.prototype.fetchComments = function() {
 var UserList = function() {
   this.users = {};
   this.length = 0;
+  this.onChangeListeners = [];
 };
 
 UserList.prototype.add = function(user) {
   if (!this.users[user.getId()]) {
     this.users[user.getId()] = user;
     this.length++;
+    this.triggerOnChange();
   }
+};
+
+UserList.prototype.remove = function(user) {
+  if (this.users[user.getId()]) {
+    delete this.users[user.getId()];
+    this.length--;
+    this.triggerOnChange();
+  }
+};
+
+UserList.prototype.clear = function() {
+  this.users = {};
+  this.length = 0;
+  this.triggerOnChange();
 };
 
 UserList.prototype.forEach = function(callback) {
@@ -332,23 +349,40 @@ UserList.prototype.forEach = function(callback) {
 
 UserList.prototype.get = function(id) {
   return this.users[id] || null;
-}
+};
+
+UserList.prototype.onChange = function(callback) {
+  this.onChangeListeners.push(callback);
+};
+
+UserList.prototype.triggerOnChange = function() {
+  var that = this;
+
+  this.onChangeListeners.forEach(function(listener) {
+    listener.call(that);
+  });
+};
 
 // User Filter
 var UserFilter = function() {
-  this.users = {};
+  UserList.call(this);
 };
 
-UserFilter.prototype.add = function(user) {
-  this.users[user.getId()] = user;
-};
-
-UserFilter.prototype.remove = function(user) {
-  delete this.users[user.getId()];
-};
+UserFilter.prototype = Object.create(UserList.prototype);
+UserFilter.prototype.constructor = UserFilter;
 
 UserFilter.prototype.hasId = function(id) {
   return !!this.users[id] || false;
+};
+
+UserFilter.prototype.getIds = function() {
+  var ids = [];
+
+  this.forEach(function(user) {
+    ids.push(user.getId());
+  });
+
+  return ids;
 };
 
 // User Filter View
@@ -372,9 +406,15 @@ var UserFilterView = function($el, userFilter, users) {
 
   this.$userList.on('click', 'li', function() {
     var userId = $(this).data('id');
+    that.userFilter.add(that.users.get(userId));
+
     $(this).remove();
 
     that.toggle();
+  });
+
+  this.users.onChange(function() {
+    that.update();
   });
 };
 
