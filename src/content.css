@@ -5,7 +5,25 @@
 .fcf-content .fcf-show-comments .fcf-show-owner-comments {
     position: absolute;
     top: 4px;
-    right: 14px;
+    right: 24px;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-show {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+    font-size: 20px;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-list {
+    display: none;
+    position: absolute;
+    top: 30px;
+    right: 10px;
+    width: 150px;
+    z-index: 10;
+    background: #ffffff;
+    border: 1px solid #000000;
 }
 
 /* View all mode */

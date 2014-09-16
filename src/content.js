@@ -155,14 +155,14 @@ var CommentList = function($el, owner) {
   this.$el = $el;
   this.owner = owner;
 
-  this.$link = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
-    + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
+  this.$panel = $('<div class="fcf-show-comments">'
+    + '<a href="#" class="fcf-show-owner-comments fcf-toggle-mode" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
+    + '<a href="#" class="fcf-show-all-comments fcf-toggle-mode">View All Comments</a>'
     + '</div>');
 
   var that = this;
 
-  this.$link.on('click', function() {
+  this.$panel.find('a.fcf-toggle-mode').on('click', function() {
     that.toggleAuthorFilter();
   });
 
@@ -178,15 +178,18 @@ var CommentList = function($el, owner) {
 CommentList.prototype.init = function() {
   this.comments = [];
   this.authorFilters = [];
+  this.users = new UserList();
 
   this.$el.addClass('fcf-comment-list');
 
   var that = this;
 
   this.owner.fetchImageUrl(function(imageUrl) {
-    that.$link.find('img').attr('src', imageUrl);
-    that.$el.find('.UFILikeSentenceText').append(that.$link);
+    that.$panel.find('img').attr('src', imageUrl);
+    that.$el.find('.UFILikeSentenceText').append(that.$panel);
   });
+
+  this.userFilterView = new UserFilterView(this.$panel, this.authorFilters, this.users);
 
   this.update();
 };
@@ -200,7 +203,8 @@ CommentList.prototype.refresh = function($el) {
 };
 
 CommentList.prototype.processNewComments = function() {
-  var that = this;
+  var that = this,
+    userCount = this.users.length;
 
   this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
     var $comment = $(this);
@@ -216,17 +220,19 @@ CommentList.prototype.processNewComments = function() {
     };
 
     that.comments.push(comment);
+
+    that.users.add(comment.author);
   });
+
+  if (this.users.length > userCount) {
+    this.userFilterView.update();
+  }
 };
 
 CommentList.prototype.toggleAuthorFilter = function() {
   this.authorFilters = this.authorFilters.length ? [] : [this.owner.getId()];
 
   this.$el.toggleClass('fcf-filter-mode', !!this.authorFilters.length);
-
-  if (!this.authorFilters.length) {
-    this.$link.toggle(!!this.getCount());
-  }
 
   this.update();
 };
@@ -237,7 +243,7 @@ CommentList.prototype.update = function() {
   if (this.authorFilters.length) {
     this.filterAuthorComments();
   } else {
-    this.$link.toggle(!!this.getCount());
+    this.$panel.toggle(!!this.getCount());
   }
 };
 
@@ -301,6 +307,89 @@ CommentList.prototype.fetchComments = function() {
   }
 
   return false;
+};
+
+// User List
+var UserList = function() {
+  this.users = {};
+  this.length = 0;
+};
+
+UserList.prototype.add = function(user) {
+  if (!this.users[user.getId()]) {
+    this.users[user.getId()] = user;
+    this.length++;
+  }
+};
+
+UserList.prototype.forEach = function(callback) {
+  for (var id in this.users) {
+    if (this.users.hasOwnProperty(id)) {
+      callback(this.users[id]);
+    }
+  }
+};
+
+UserList.prototype.get = function(id) {
+  return this.users[id] || null;
+}
+
+// User Filter
+var UserFilter = function() {
+  this.users = {};
+};
+
+UserFilter.prototype.add = function(user) {
+  this.users[user.getId()] = user;
+};
+
+UserFilter.prototype.remove = function(user) {
+  delete this.users[user.getId()];
+};
+
+UserFilter.prototype.hasId = function(id) {
+  return !!this.users[id] || false;
+};
+
+// User Filter View
+var UserFilterView = function($el, userFilter, users) {
+  this.$el = $el;
+  this.userFilter = userFilter;
+  this.users = users;
+
+  this.$openLink = $('<a href="#" class="fcf-user-filter-show" title="View users">+</a>');
+
+  this.$userList = $('<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>');
+
+  this.$el.append(this.$openLink);
+  this.$el.append(this.$userList);
+
+  var that = this;
+
+  this.$openLink.on('click', function() {
+    that.toggle();
+  });
+
+  this.$userList.on('click', 'li', function() {
+    var userId = $(this).data('id');
+    $(this).remove();
+
+    that.toggle();
+  });
+};
+
+UserFilterView.prototype.toggle = function() {
+  this.$userList.toggle();
+};
+
+UserFilterView.prototype.update = function() {
+  var $userList = $('<ul></ul>');
+
+  this.users.forEach(function(user) {
+    $userList.append('<li data-id="' + user.getId() + '"><a href="#">' + user.getName() + '</a></li>');
+  });
+
+  this.$userList.find('ul').replaceWith($userList);
 };
 
 // Comment
