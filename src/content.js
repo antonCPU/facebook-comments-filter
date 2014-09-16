@@ -1,3 +1,4 @@
+// Feed
 var Feed = function() {
   var that = this;
 
@@ -28,11 +29,75 @@ Feed.prototype.parseNew = function() {
   });
 };
 
+// Profile
+var Profile = function($el) {
+  this.$el = $el;
+
+  this.id = null;
+  this.name = null;
+  this.imageUrl = null;
+
+  if (!$el.data('hovercard') || $el.attr('href').match(/groups/)) {
+    this.id   = false;
+    this.name = false;
+    this.imageUrl = false;
+  }
+};
+
+Profile.prototype.getId = function() {
+  if (this.id === null) {
+    this.id = this.$el.data('hovercard').match(/\?id=([^&.]+)/)[1]
+  }
+
+  return this.id;
+};
+
+Profile.prototype.getName = function() {
+  if (this.name === null) {
+    this.name = this.$el.html();
+  }
+
+  return this.name;
+};
+
+Profile.prototype.fetchImageUrl = function(callback) {
+  if (this.imageUrl === null) {
+    var that = this;
+
+    this.fetchHovercardImageUrl(function(imageUrl) {
+      that.imageUrl = imageUrl;
+
+      callback(imageUrl);
+    });
+  } else {
+    callback(this.imageUrl);
+  }
+};
+
+Profile.prototype.fetchHovercardImageUrl = function(callback) {
+  var url = this.$el.data('hovercard');
+  url += '&endpoint=' + encodeURIComponent(url);
+  url += '&__a=1';
+
+  $.ajax({
+    type: 'GET',
+    dataType: 'text',
+    url: url,
+    success: function(data) {
+      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/).pop();
+      imageUrl = JSON.parse('"' + imageUrl + '"').replace(/&amp;/g, '&');
+
+      callback(imageUrl);
+    }
+  });
+};
+
+// Content
 var Content = function(id, $el) {
   this.id  = id;
   this.$el = $el;
 
-  this.owner = this.detectOwner();
+  this.owner = new ContentProfile($el);
 
   if (!this.owner.getName()) {
     return;
@@ -57,8 +122,28 @@ Content.prototype.refresh = function($el) {
   }
 };
 
-Content.prototype.detectOwner = function() {
-  return new Profile(this.$el.find('a[data-hovercard]:not([aria-hidden]):eq(0)'));
+// Content Profile
+var ContentProfile = function($content) {
+  this.$content = $content;
+  this.$el = $content.find('a[data-hovercard]:not([aria-hidden]):eq(0)');
+
+  Profile.call(this, this.$el);
+};
+
+ContentProfile.prototype = Object.create(Profile.prototype);
+ContentProfile.prototype.constructor = ContentProfile;
+
+ContentProfile.prototype.fetchImageUrl = function(callback) {
+  if (this.imageUrl === null) {
+    if (this.$el.closest('.clearfix').closest('.userContentWrapper').length) {
+      this.imageUrl = this.$content.find('a[data-hovercard][aria-hidden] img').attr('src');
+    } else {
+      Profile.prototype.fetchImageUrl.call(this, callback);
+      return;
+    }
+  }
+
+  callback(this.imageUrl);
 };
 
 var CommentList = function($el, owner) {
@@ -211,10 +296,12 @@ CommentList.prototype.fetchComments = function() {
   return false;
 };
 
+// Comment
 var Comment = function($el) {
   this.$el = $el;
 
-  this.author = new Profile($el.find('.UFICommentActorName'));
+  this.author = new CommentProfile($el);
+
   this.mentionedUser = null;
 };
 
@@ -244,14 +331,13 @@ Comment.prototype.toggleActions = function(show) {
 };
 
 Comment.prototype.getMentionedUser = function() {
-  if (this.mentionedUser) {
-    return this.mentionedUser;
-  }
+  if (this.mentionedUser === null) {
+    var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
 
-  var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
-
-  if ($mentionedProfileLink.length) {
-    this.mentionedUser = new Profile($mentionedProfileLink);
+    if ($mentionedProfileLink.length) {
+      var mentionedUser = new Profile($mentionedProfileLink);
+      this.mentionedUser = mentionedUser.id ? mentionedUser : false;
+    }
   }
 
   return this.mentionedUser;
@@ -263,66 +349,23 @@ Comment.prototype.toggleVisible = function(show) {
 
 Comment.prototype.onClickShowAuthor = function() {};
 
-var Profile = function($link) {
-  this.$el = $link;
+// Comment Profile
+var CommentProfile = function($comment) {
+  this.$comment = $comment;
+  this.$el = $comment.find('.UFICommentActorName');
 
-  this.id = null;
-  this.name = null;
-  this.imageUrl = null;
-
-  if (!$link.data('hovercard')) {
-    this.id   = false;
-    this.name = false;
-    this.imageUrl = false;
-  }
+  Profile.call(this, this.$el);
 };
 
-Profile.prototype.getId = function() {
-  if (this.id === null) {
-    this.id = this.$el.data('hovercard').match(/\?id=([^&.]+)/)[1]
-  }
+CommentProfile.prototype = Object.create(Profile.prototype);
+CommentProfile.prototype.constructor = CommentProfile;
 
-  return this.id;
-};
-
-Profile.prototype.getName = function() {
-  if (this.name === null) {
-    this.name = this.$el.html();
-  }
-
-  return this.name;
-};
-
-Profile.prototype.fetchImageUrl = function(callback) {
+CommentProfile.prototype.fetchImageUrl = function(callback) {
   if (this.imageUrl === null) {
-    var that = this;
-
-    this.fetchHovercardImageUrl(function(imageUrl) {
-      that.imageUrl = imageUrl;
-
-      callback(imageUrl);
-    });
-  } else {
-    callback(this.imageUrl);
+    this.imageUrl = this.$comment.find('img.UFIActorImage').attr('src');
   }
-};
 
-Profile.prototype.fetchHovercardImageUrl = function(callback) {
-  var url = this.$el.data('hovercard');
-  url += '&endpoint=' + encodeURIComponent(url);
-  url += '&__a=1';
-
-  $.ajax({
-    type: 'GET',
-    dataType: 'text',
-    url: url,
-    success: function(data) {
-      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/).pop();
-      imageUrl = JSON.parse('"' + imageUrl + '"').replace(/&amp;/g, '&');
-
-      callback(imageUrl);
-    }
-  });
+  callback(this.imageUrl);
 };
 
 // initialize
