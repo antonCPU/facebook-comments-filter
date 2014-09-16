@@ -211,7 +211,8 @@ CommentList.prototype.refresh = function($el) {
 };
 
 CommentList.prototype.processNewComments = function() {
-  var that = this;
+  var that = this,
+      users = [];
 
   this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
     var $comment = $(this);
@@ -226,8 +227,10 @@ CommentList.prototype.processNewComments = function() {
 
     that.comments.push(comment);
 
-    that.users.add(comment.author);
+    users.push(comment.author);
   });
+
+  this.users.merge(users);
 };
 
 CommentList.prototype.update = function() {
@@ -257,7 +260,7 @@ CommentList.prototype.filterAuthorComments = function() {
   this.comments.forEach(function(comment) {
     var isVisible = false;
 
-    if (filter.hasId(comment.author.getId())) {
+    if (filter.has(comment.author)) {
       isVisible = true;
       var index = notFoundAuthors.indexOf(comment.author.getId());
       if (-1 !== index) {
@@ -270,7 +273,7 @@ CommentList.prototype.filterAuthorComments = function() {
     if (isVisible) {
       var mentionedUser = comment.getMentionedUser();
 
-      if (mentionedUser && !filter.hasId(mentionedUser.getId())) {
+      if (mentionedUser && !filter.has(mentionedUser)) {
         comment.toggleActions(true);
       } else {
         comment.toggleActions(false);
@@ -351,6 +354,23 @@ UserList.prototype.get = function(id) {
   return this.users[id] || null;
 };
 
+UserList.prototype.merge = function(users) {
+  var that = this,
+      count = 0;
+
+  users.forEach(function(user) {
+    if (!that.users[user.getId()]) {
+      that.users[user.getId()] = user;
+      count++;
+    }
+  });
+
+  if (count) {
+    this.length += count;
+    this.triggerOnChange();
+  }
+};
+
 UserList.prototype.onChange = function(callback) {
   this.onChangeListeners.push(callback);
 };
@@ -371,8 +391,8 @@ var UserFilter = function() {
 UserFilter.prototype = Object.create(UserList.prototype);
 UserFilter.prototype.constructor = UserFilter;
 
-UserFilter.prototype.hasId = function(id) {
-  return !!this.users[id] || false;
+UserFilter.prototype.has = function(user) {
+  return !!this.users[user.getId()] || false;
 };
 
 UserFilter.prototype.getIds = function() {
@@ -386,9 +406,9 @@ UserFilter.prototype.getIds = function() {
 };
 
 // User Filter View
-var UserFilterView = function($el, userFilter, users) {
+var UserFilterView = function($el, filter, users) {
   this.$el = $el;
-  this.userFilter = userFilter;
+  this.filter = filter;
   this.users = users;
 
   this.$openLink = $('<a href="#" class="fcf-user-filter-show" title="View users">+</a>');
@@ -404,9 +424,9 @@ var UserFilterView = function($el, userFilter, users) {
     that.toggle();
   });
 
-  this.$userList.on('click', 'li', function() {
-    var userId = $(this).data('id');
-    that.userFilter.add(that.users.get(userId));
+  this.$userList.on('click', 'a', function() {
+    var userId = $(this).parent().data('id');
+    that.filter.add(that.users.get(userId));
 
     $(this).remove();
 
@@ -416,6 +436,10 @@ var UserFilterView = function($el, userFilter, users) {
   this.users.onChange(function() {
     that.update();
   });
+
+  this.filter.onChange(function() {
+    that.update();
+  });
 };
 
 UserFilterView.prototype.toggle = function() {
@@ -423,11 +447,20 @@ UserFilterView.prototype.toggle = function() {
 };
 
 UserFilterView.prototype.update = function() {
-  var $userList = $('<ul></ul>');
+  var $userList = $('<ul></ul>'),
+      filter = this.filter,
+      count = 0;
 
   this.users.forEach(function(user) {
-    $userList.append('<li data-id="' + user.getId() + '"><a href="#">' + user.getName() + '</a></li>');
+    if (!filter.has(user)) {
+      $userList.append('<li data-id="' + user.getId() + '"><a href="#">' + user.getName() + '</a></li>');
+      count++;
+    }
   });
+
+  if (!count) {
+    $userList.append('<li>No users</li>');
+  }
 
   this.$userList.find('ul').replaceWith($userList);
 };
@@ -473,7 +506,6 @@ Comment.prototype.getMentionedUser = function() {
     if ($mentionedUserLink.length) {
       var mentionedUser = new User($mentionedUserLink);
       this.mentionedUser = mentionedUser.getId() ? mentionedUser : false;
-
     }
   }
 
