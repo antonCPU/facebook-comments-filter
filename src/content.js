@@ -29,8 +29,8 @@ Feed.prototype.parseNew = function() {
   });
 };
 
-// Profile
-var Profile = function($el) {
+// User
+var User = function($el) {
   this.$el = $el;
 
   this.id = null;
@@ -44,7 +44,7 @@ var Profile = function($el) {
   }
 };
 
-Profile.prototype.getId = function() {
+User.prototype.getId = function() {
   if (this.id === null) {
     this.id = this.$el.data('hovercard').match(/\?id=([^&.]+)/)[1]
   }
@@ -52,7 +52,7 @@ Profile.prototype.getId = function() {
   return this.id;
 };
 
-Profile.prototype.getName = function() {
+User.prototype.getName = function() {
   if (this.name === null) {
     this.name = this.$el.html();
   }
@@ -60,7 +60,7 @@ Profile.prototype.getName = function() {
   return this.name;
 };
 
-Profile.prototype.fetchImageUrl = function(callback) {
+User.prototype.fetchImageUrl = function(callback) {
   if (this.imageUrl === null) {
     var that = this;
 
@@ -74,7 +74,7 @@ Profile.prototype.fetchImageUrl = function(callback) {
   }
 };
 
-Profile.prototype.fetchHovercardImageUrl = function(callback) {
+User.prototype.fetchHovercardImageUrl = function(callback) {
   var url = this.$el.data('hovercard');
   url += '&endpoint=' + encodeURIComponent(url);
   url += '&__a=1';
@@ -102,7 +102,7 @@ var Content = function(id, $el) {
   this.id  = id;
   this.$el = $el;
 
-  this.owner = new ContentProfile($el);
+  this.owner = new ContentOwner($el);
 
   if (!this.owner.getName()) {
     return;
@@ -127,23 +127,23 @@ Content.prototype.refresh = function($el) {
   }
 };
 
-// Content Profile
-var ContentProfile = function($content) {
+// Content User
+var ContentOwner = function($content) {
   this.$content = $content;
   this.$el = $content.find('a[data-hovercard]:not([aria-hidden]):eq(0)');
 
-  Profile.call(this, this.$el);
+  User.call(this, this.$el);
 };
 
-ContentProfile.prototype = Object.create(Profile.prototype);
-ContentProfile.prototype.constructor = ContentProfile;
+ContentOwner.prototype = Object.create(User.prototype);
+ContentOwner.prototype.constructor = ContentOwner;
 
-ContentProfile.prototype.fetchImageUrl = function(callback) {
+ContentOwner.prototype.fetchImageUrl = function(callback) {
   if (this.imageUrl === null) {
     if (this.$el.closest('.clearfix').closest('.userContentWrapper').length) {
       this.imageUrl = this.$content.find('a[data-hovercard][aria-hidden] img').attr('src');
     } else {
-      Profile.prototype.fetchImageUrl.call(this, callback);
+      User.prototype.fetchImageUrl.call(this, callback);
       return;
     }
   }
@@ -307,7 +307,7 @@ CommentList.prototype.fetchComments = function() {
 var Comment = function($el) {
   this.$el = $el;
 
-  this.author = new CommentProfile($el);
+  this.author = new CommentAuthor($el);
 
   this.mentionedUser = null;
 };
@@ -339,10 +339,10 @@ Comment.prototype.toggleActions = function(show) {
 
 Comment.prototype.getMentionedUser = function() {
   if (this.mentionedUser === null) {
-    var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
+    var $mentionedUserLink = this.$el.find('.UFICommentBody a.profileLink');
 
-    if ($mentionedProfileLink.length) {
-      var mentionedUser = new Profile($mentionedProfileLink);
+    if ($mentionedUserLink.length) {
+      var mentionedUser = new User($mentionedUserLink);
       this.mentionedUser = mentionedUser.getId() ? mentionedUser : false;
 
     }
@@ -357,18 +357,18 @@ Comment.prototype.toggleVisible = function(show) {
 
 Comment.prototype.onClickShowAuthor = function() {};
 
-// Comment Profile
-var CommentProfile = function($comment) {
+// Comment User
+var CommentAuthor = function($comment) {
   this.$comment = $comment;
   this.$el = $comment.find('.UFICommentActorName');
 
-  Profile.call(this, this.$el);
+  User.call(this, this.$el);
 };
 
-CommentProfile.prototype = Object.create(Profile.prototype);
-CommentProfile.prototype.constructor = CommentProfile;
+CommentAuthor.prototype = Object.create(User.prototype);
+CommentAuthor.prototype.constructor = CommentAuthor;
 
-CommentProfile.prototype.fetchImageUrl = function(callback) {
+CommentAuthor.prototype.fetchImageUrl = function(callback) {
   if (this.imageUrl === null) {
     this.imageUrl = this.$comment.find('img.UFIActorImage').attr('src');
   }
