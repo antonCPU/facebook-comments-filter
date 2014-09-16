@@ -2,6 +2,12 @@
     float: right;
 }
 
+.fcf-content .fcf-show-comments .fcf-show-owner-comments {
+    position: absolute;
+    top: 4px;
+    right: 14px;
+}
+
 /* View all mode */
 .fcf-content .fcf-show-comments .fcf-show-all-comments {
     display: none;
@@ -39,5 +45,7 @@
 
 .fcf-content .fcf-filter-mode .fcf-comment .fcf-show-author-comments {
     display: block;
-    float: right;
+    position: absolute;
+    right: 0;
+    bottom: -4px;
 }

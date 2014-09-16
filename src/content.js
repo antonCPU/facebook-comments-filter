@@ -1,3 +1,4 @@
+// Feed
 var Feed = function() {
   var that = this;
 
@@ -28,13 +29,82 @@ Feed.prototype.parseNew = function() {
   });
 };
 
+// Profile
+var Profile = function($el) {
+  this.$el = $el;
+
+  this.id = null;
+  this.name = null;
+  this.imageUrl = null;
+
+  if (!$el.data('hovercard') || $el.attr('href').match(/groups/)) {
+    this.id   = false;
+    this.name = false;
+    this.imageUrl = false;
+  }
+};
+
+Profile.prototype.getId = function() {
+  if (this.id === null) {
+    this.id = this.$el.data('hovercard').match(/\?id=([^&.]+)/)[1]
+  }
+
+  return this.id;
+};
+
+Profile.prototype.getName = function() {
+  if (this.name === null) {
+    this.name = this.$el.html();
+  }
+
+  return this.name;
+};
+
+Profile.prototype.fetchImageUrl = function(callback) {
+  if (this.imageUrl === null) {
+    var that = this;
+
+    this.fetchHovercardImageUrl(function(imageUrl) {
+      that.imageUrl = imageUrl;
+
+      callback(imageUrl);
+    });
+  } else {
+    callback(this.imageUrl);
+  }
+};
+
+Profile.prototype.fetchHovercardImageUrl = function(callback) {
+  var url = this.$el.data('hovercard');
+  url += '&endpoint=' + encodeURIComponent(url);
+  url += '&__a=1';
+
+  $.ajax({
+    type: 'GET',
+    dataType: 'text',
+    url: url,
+    success: function(data) {
+      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/);
+
+      if (!imageUrl) {
+        callback(false);
+      } else {
+        imageUrl = JSON.parse('"' + imageUrl.pop() + '"').replace(/&amp;/g, '&');
+
+        callback(imageUrl);
+      }
+    }
+  });
+};
+
+// Content
 var Content = function(id, $el) {
   this.id  = id;
   this.$el = $el;
 
-  this.owner = this.detectOwner();
+  this.owner = new ContentProfile($el);
 
-  if (!this.owner.name) {
+  if (!this.owner.getName()) {
     return;
   }
 
@@ -57,8 +127,28 @@ Content.prototype.refresh = function($el) {
   }
 };
 
-Content.prototype.detectOwner = function() {
-  return new Profile(this.$el.find('a[data-hovercard]:not([aria-hidden]):eq(0)'));
+// Content Profile
+var ContentProfile = function($content) {
+  this.$content = $content;
+  this.$el = $content.find('a[data-hovercard]:not([aria-hidden]):eq(0)');
+
+  Profile.call(this, this.$el);
+};
+
+ContentProfile.prototype = Object.create(Profile.prototype);
+ContentProfile.prototype.constructor = ContentProfile;
+
+ContentProfile.prototype.fetchImageUrl = function(callback) {
+  if (this.imageUrl === null) {
+    if (this.$el.closest('.clearfix').closest('.userContentWrapper').length) {
+      this.imageUrl = this.$content.find('a[data-hovercard][aria-hidden] img').attr('src');
+    } else {
+      Profile.prototype.fetchImageUrl.call(this, callback);
+      return;
+    }
+  }
+
+  callback(this.imageUrl);
 };
 
 var CommentList = function($el, owner) {
@@ -66,7 +156,7 @@ var CommentList = function($el, owner) {
   this.owner = owner;
 
   this.$link = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments">View ' + this.owner.name + ' Comments</a>'
+    + '<a href="#" class="fcf-show-owner-comments" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
     + '<a href="#" class="fcf-show-all-comments">View All Comments</a>'
     + '</div>');
 
@@ -76,7 +166,7 @@ var CommentList = function($el, owner) {
     that.toggleAuthorFilter();
   });
 
-  this.$noComments = $('<li class="UFIRow fcf-no-comments">No ' + this.owner.name + ' comments</li>');
+  this.$noComments = $('<li class="UFIRow fcf-no-comments">No comments</li>');
 
   setInterval(function() {
     that.update();
@@ -91,7 +181,12 @@ CommentList.prototype.init = function() {
 
   this.$el.addClass('fcf-comment-list');
 
-  this.$el.find('.UFILikeSentenceText').append(this.$link);
+  var that = this;
+
+  this.owner.fetchImageUrl(function(imageUrl) {
+    that.$link.find('img').attr('src', imageUrl);
+    that.$el.find('.UFILikeSentenceText').append(that.$link);
+  });
 
   this.update();
 };
@@ -115,7 +210,7 @@ CommentList.prototype.processNewComments = function() {
     var comment = new Comment($comment);
 
     comment.onClickShowAuthor = function() {
-      that.authorFilters.push(this.mentionedUser.id);
+      that.authorFilters.push(this.mentionedUser.getId());
 
       that.filterAuthorComments();
     };
@@ -125,7 +220,7 @@ CommentList.prototype.processNewComments = function() {
 };
 
 CommentList.prototype.toggleAuthorFilter = function() {
-  this.authorFilters = this.authorFilters.length ? [] : [this.owner.id];
+  this.authorFilters = this.authorFilters.length ? [] : [this.owner.getId()];
 
   this.$el.toggleClass('fcf-filter-mode', !!this.authorFilters.length);
 
@@ -156,7 +251,7 @@ CommentList.prototype.filterAuthorComments = function() {
 
   this.comments.forEach(function(comment) {
     var isVisible = false,
-      filterIndex = filters.indexOf(comment.author.id);
+      filterIndex = filters.indexOf(comment.author.getId());
 
     if (-1 !== filterIndex) {
       isVisible = true;
@@ -165,12 +260,14 @@ CommentList.prototype.filterAuthorComments = function() {
 
     comment.toggleVisible(isVisible);
 
-    var mentionedUser = comment.getMentionedUser();
+    if (isVisible) {
+      var mentionedUser = comment.getMentionedUser();
 
-    if (mentionedUser && (-1 === filters.indexOf(mentionedUser.id))) {
-      comment.toggleActions(true);
-    } else {
-      comment.toggleActions(false);
+      if (mentionedUser && (-1 === filters.indexOf(mentionedUser.getId()))) {
+        comment.toggleActions(true);
+      } else {
+        comment.toggleActions(false);
+      }
     }
   });
 
@@ -206,10 +303,12 @@ CommentList.prototype.fetchComments = function() {
   return false;
 };
 
+// Comment
 var Comment = function($el) {
   this.$el = $el;
 
-  this.author = new Profile($el.find('.UFICommentActorName'));
+  this.author = new CommentProfile($el);
+
   this.mentionedUser = null;
 };
 
@@ -220,9 +319,12 @@ Comment.prototype.toggleActions = function(show) {
     var mentionedUser = this.getMentionedUser();
 
     if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
-      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments">Show ' + mentionedUser.name + ' comments</a>');
+      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments" title="Show ' + mentionedUser.getName() + ' comments"><img src="" width="20" height="20" /></a>');
 
-      this.$el.find('.UFICommentActions').append(this.$showAuthorComments);
+      mentionedUser.fetchImageUrl(function(imageUrl) {
+        that.$showAuthorComments.find('img').attr('src', imageUrl);
+        that.$el.find('.UFICommentActions').append(that.$showAuthorComments);
+      });
 
       this.$showAuthorComments.on('click', function() {
         that.onClickShowAuthor();
@@ -236,14 +338,14 @@ Comment.prototype.toggleActions = function(show) {
 };
 
 Comment.prototype.getMentionedUser = function() {
-  if (this.mentionedUser) {
-    return this.mentionedUser;
-  }
+  if (this.mentionedUser === null) {
+    var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
 
-  var $mentionedProfileLink = this.$el.find('.UFICommentBody a.profileLink');
+    if ($mentionedProfileLink.length) {
+      var mentionedUser = new Profile($mentionedProfileLink);
+      this.mentionedUser = mentionedUser.getId() ? mentionedUser : false;
 
-  if ($mentionedProfileLink.length) {
-    this.mentionedUser = new Profile($mentionedProfileLink);
+    }
   }
 
   return this.mentionedUser;
@@ -255,16 +357,23 @@ Comment.prototype.toggleVisible = function(show) {
 
 Comment.prototype.onClickShowAuthor = function() {};
 
-var Profile = function($link) {
-  this.id = null;
-  this.name = null;
+// Comment Profile
+var CommentProfile = function($comment) {
+  this.$comment = $comment;
+  this.$el = $comment.find('.UFICommentActorName');
 
-  if (!$link.data('hovercard')) {
-    return;
+  Profile.call(this, this.$el);
+};
+
+CommentProfile.prototype = Object.create(Profile.prototype);
+CommentProfile.prototype.constructor = CommentProfile;
+
+CommentProfile.prototype.fetchImageUrl = function(callback) {
+  if (this.imageUrl === null) {
+    this.imageUrl = this.$comment.find('img.UFIActorImage').attr('src');
   }
 
-  this.id = $link.data('hovercard').match(/\?id=([^&.]+)/)[1];
-  this.name = $link.html();
+  callback(this.imageUrl);
 };
 
 // initialize
