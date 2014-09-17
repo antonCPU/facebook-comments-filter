@@ -49,6 +49,7 @@
     width: 100px;
     line-height: 14px;
     display: inline-block;
+    overflow: hidden;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list img {

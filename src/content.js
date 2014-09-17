@@ -155,26 +155,9 @@ var CommentList = function($el, owner) {
   this.$el = $el;
   this.owner = owner;
 
-  this.$panel = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
-    +   '<img src="" width="23" height="23" />'
-    + '</a>'
-    + '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
-    +   '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
-    + '</a>'
-    + '</div>');
+  this.$noComments = $('<li class="UFIRow UFIFirstCommentComponent fcf-no-comments">No comments</li>');
 
   var that = this;
-
-  this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
-    that.authorFilter.add(that.owner);
-  });
-
-  this.$panel.find('a.fcf-show-all-comments').on('click', function() {
-    that.authorFilter.clear();
-  });
-
-  this.$noComments = $('<li class="UFIRow UFIFirstCommentComponent fcf-no-comments">No comments</li>');
 
   setInterval(function() {
     that.update();
@@ -185,22 +168,17 @@ var CommentList = function($el, owner) {
 
 CommentList.prototype.init = function() {
   this.comments = [];
-  this.authorFilter = new UserFilter();
+  this.filter = new UserFilter();
   this.users = new UserList();
 
   this.$el.addClass('fcf-comment-list');
 
   var that = this;
 
-  this.owner.fetchImageUrl(function(imageUrl) {
-    that.$panel.find('.fcf-show-owner-comments img').attr('src', imageUrl);
-    that.$el.find('.UFILikeSentenceText').append(that.$panel);
-  });
+  this.userFilterView = new UserFilterView(this.$el, this.owner, this.filter, this.users);
 
-  this.userFilterView = new UserFilterView(this.$panel, this.authorFilter, this.users);
-
-  this.authorFilter.onChange(function() {
-    that.filterAuthorComments();
+  this.filter.onChange(function() {
+    that.filterComments();
   });
 
   this.update();
@@ -216,7 +194,8 @@ CommentList.prototype.refresh = function($el) {
 
 CommentList.prototype.processNewComments = function() {
   var that = this,
-      users = [];
+      users = [],
+      count = 0;
 
   this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
     var $comment = $(this);
@@ -226,24 +205,28 @@ CommentList.prototype.processNewComments = function() {
     var comment = new Comment($comment);
 
     comment.onClickShowAuthor = function() {
-      that.authorFilter.add(this.mentionedUser);
+      that.filter.add(this.mentionedUser);
     };
 
     that.comments.push(comment);
 
     users.push(comment.author);
+
+    count++;
   });
 
   this.users.merge(users);
+
+  if (count) {
+    this.filterComments();
+  }
 };
 
 CommentList.prototype.update = function() {
   this.processNewComments();
 
-  this.filterAuthorComments();
-
-  if (!this.authorFilter.length) {
-    this.$panel.toggle(!!this.getCount());
+  if (!this.filter.length) {
+    this.userFilterView.toggle(!!this.getCount());
   }
 };
 
@@ -251,12 +234,11 @@ CommentList.prototype.getCount = function() {
   return this.$el.find('.fcf-comment').length;
 };
 
-CommentList.prototype.filterAuthorComments = function() {
-  var filter = this.authorFilter,
+CommentList.prototype.filterComments = function() {
+  var filter = this.filter,
       notFoundAuthors = filter.getIds();
 
   this.$el.toggleClass('fcf-filter-mode', !!filter.length);
-  this.$panel.find('.fcf-show-owner-comments').toggle(!filter.has(this.owner));
 
   if (!filter.length) {
     return;
@@ -411,22 +393,45 @@ UserFilter.prototype.getIds = function() {
 };
 
 // User Filter View
-var UserFilterView = function($el, filter, users) {
+var UserFilterView = function($el, owner, filter, users) {
   this.$el = $el;
+  this.owner = owner;
   this.filter = filter;
   this.users = users;
+
+  var that = this;
+
+  this.$panel = $('<div class="fcf-show-comments">'
+    + '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
+    +   '<img src="" width="23" height="23" />'
+    + '</a>'
+    + '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
+    +   '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
+    + '</a>'
+    + '</div>');
+
+  this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
+    that.filter.add(that.owner);
+  });
+
+  this.$panel.find('a.fcf-show-all-comments').on('click', function() {
+    that.filter.clear();
+  });
+
+  this.owner.fetchImageUrl(function(imageUrl) {
+    that.$panel.find('.fcf-show-owner-comments img').attr('src', imageUrl);
+    that.$el.find('.UFILikeSentenceText').append(that.$panel);
+  });
 
   this.$openLink = $('<a href="#" class="fcf-user-filter-show" title="Add users">+</a>');
 
   this.$userList = $('<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>');
 
-  this.$el.append(this.$openLink);
-  this.$el.append(this.$userList);
-
-  var that = this;
+  this.$panel.append(this.$openLink);
+  this.$panel.append(this.$userList);
 
   this.$openLink.on('click', function() {
-    that.toggle();
+    that.$userList.toggle();
   });
 
   this.$userList.on('click', 'a', function() {
@@ -435,7 +440,7 @@ var UserFilterView = function($el, filter, users) {
 
     $(this).remove();
 
-    that.toggle();
+    that.$userList.toggle();
   });
 
   this.users.onChange(function() {
@@ -447,8 +452,8 @@ var UserFilterView = function($el, filter, users) {
   });
 };
 
-UserFilterView.prototype.toggle = function() {
-  this.$userList.toggle();
+UserFilterView.prototype.toggle = function(show) {
+  this.$panel.toggle(show);
 };
 
 UserFilterView.prototype.update = function() {
@@ -476,6 +481,8 @@ UserFilterView.prototype.update = function() {
   }
 
   this.$userList.find('ul').replaceWith($userList);
+
+  this.$panel.find('.fcf-show-owner-comments').toggle(!filter.has(this.owner));
 };
 
 // Comment
