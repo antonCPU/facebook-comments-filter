@@ -156,8 +156,12 @@ var CommentList = function($el, owner) {
   this.owner = owner;
 
   this.$panel = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments" title="View ' + this.owner.getName() + ' comments"><img src="" height="23" width="23" /></a>'
-    + '<a href="#" class="fcf-show-all-comments fcf-toggle-mode">View All Comments</a>'
+    + '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
+    +   '<img src="" width="23" height="23" />'
+    + '</a>'
+    + '<a href="#" class="fcf-show-all-comments" title="View All Comments">'
+    +   '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
+    + '</a>'
     + '</div>');
 
   var that = this;
@@ -252,6 +256,7 @@ CommentList.prototype.filterAuthorComments = function() {
       notFoundAuthors = filter.getIds();
 
   this.$el.toggleClass('fcf-filter-mode', !!filter.length);
+  this.$panel.find('.fcf-show-owner-comments').toggle(!filter.has(this.owner));
 
   if (!filter.length) {
     return;
@@ -411,7 +416,7 @@ var UserFilterView = function($el, filter, users) {
   this.filter = filter;
   this.users = users;
 
-  this.$openLink = $('<a href="#" class="fcf-user-filter-show" title="View users">+</a>');
+  this.$openLink = $('<a href="#" class="fcf-user-filter-show" title="Add users">+</a>');
 
   this.$userList = $('<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>');
 

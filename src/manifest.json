@@ -11,5 +11,9 @@
       "css": ["content.css"],
       "js": ["jquery.min.js", "content.js"]
     }
+  ],
+
+  "web_accessible_resources": [
+    "comment.png"
   ]
 }

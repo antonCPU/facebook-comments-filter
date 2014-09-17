@@ -1,25 +1,32 @@
 .fcf-content .fcf-show-comments {
-    float: right;
-}
-
-.fcf-content .fcf-show-comments .fcf-show-owner-comments {
-    position: absolute;
-    top: 4px;
-    right: 24px;
-}
-
-.fcf-content .fcf-show-comments .fcf-user-filter-show {
     position: absolute;
     top: 4px;
     right: 10px;
+}
+
+.fcf-content .fcf-show-comments .fcf-show-owner-comments {
+    float: left;
+}
+
+.fcf-content .fcf-show-comments .fcf-show-all-comments {
+    float: left;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-show {
+    float: right;
+    padding-left: 5px;
     font-size: 20px;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-show:hover {
+    text-decoration: none;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list {
     display: none;
     position: absolute;
-    top: 30px;
-    right: 10px;
+    top: 27px;
+    right: 0;
     width: 150px;
     z-index: 10;
     background: #ffffff;
@@ -50,10 +57,6 @@
 }
 
 /* Filter mode */
-.fcf-content .fcf-filter-mode .fcf-show-comments .fcf-show-owner-comments {
-    display: none;
-}
-
 .fcf-content .fcf-filter-mode .fcf-show-comments .fcf-show-all-comments {
     display: block;
 }
