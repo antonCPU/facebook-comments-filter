@@ -35,11 +35,20 @@
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list li {
     margin: 5px;
+    height: 26px;
+    line-height: 26px;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-list li span {
+    width: 108px;
+    line-height: 14px;
+    display: inline-block;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list img {
     vertical-align: middle;
     padding-right: 5px;
+    float: left;
 }
 
 /* View all mode */

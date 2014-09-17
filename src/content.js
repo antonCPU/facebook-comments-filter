@@ -458,7 +458,10 @@ UserFilterView.prototype.update = function() {
 
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
-      var $user = $('<li data-id="' + user.getId() + '"><a href="#"><img src="" width="23" height="23" />' + user.getName() + '</a></li>');
+      var $user = $('<li data-id="' + user.getId() + '">'
+        +   '<a href="#"><img src="" width="26" height="26" /><span>' + user.getName() + '</span></a>'
+        + '</li>');
+
       user.fetchImageUrl(function(imageUrl) {
         $user.find('img').attr('src', imageUrl);
       });
