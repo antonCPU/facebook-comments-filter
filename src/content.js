@@ -434,8 +434,8 @@ var UserFilterView = function($el, owner, filter, users) {
     that.$userList.toggle();
   });
 
-  this.$userList.on('click', 'a', function() {
-    var userId = $(this).parent().data('id');
+  this.$userList.on('click', 'li', function() {
+    var userId = $(this).data('id');
     that.filter.add(that.users.get(userId));
 
     $(this).remove();
@@ -464,7 +464,7 @@ UserFilterView.prototype.update = function() {
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
       var $user = $('<li data-id="' + user.getId() + '">'
-        +   '<a href="#"><img src="" width="26" height="26" /><span>' + user.getName() + '</span></a>'
+        +   '<img src="" width="26" height="26" /><span>' + user.getName() + '</span>'
         + '</li>');
 
       user.fetchImageUrl(function(imageUrl) {

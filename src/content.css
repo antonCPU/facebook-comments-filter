@@ -27,7 +27,7 @@
     position: absolute;
     top: 27px;
     right: 0;
-    width: 170px;
+    width: 180px;
     z-index: 10;
 
     -webkit-background-clip: padding-box;
@@ -40,20 +40,21 @@
 .fcf-content .fcf-show-comments .fcf-user-filter-list ul {
     max-height: 222px;
     overflow-y: auto;
-    padding-right:14px;
+    overflow-x: hidden;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list li {
     margin: 5px;
     height: 26px;
     line-height: 26px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list li span {
-    width: 100px;
-    line-height: 14px;
+    line-height: 26px;
     display: inline-block;
-    overflow: hidden;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list img {
