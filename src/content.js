@@ -268,7 +268,9 @@ CommentList.prototype.filterComments = function() {
     }
   });
 
-  if ((notFoundAuthors.filter(Number).length === filter.length)  && !this.fetchComments()) {
+  var notFoundCount = notFoundAuthors.filter(Number).length;
+
+  if (notFoundCount && !this.fetchComments() && (notFoundCount === filter.length)) {
     this.toggleNoComments(true);
   } else {
     this.toggleNoComments(false);
@@ -441,6 +443,15 @@ var UserFilterView = function($el, owner, filter, users) {
     $(this).remove();
 
     that.$userList.toggle();
+  });
+
+  $(document).mouseup(function(e) {
+    var $list = that.$userList,
+        $link = that.$openLink;
+
+    if (!$list.is(e.target) && !$link.is(e.target) && $list.has(e.target).length === 0) {
+      $list.hide();
+    }
   });
 
   this.users.onChange(function() {
