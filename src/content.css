@@ -27,10 +27,16 @@
     position: absolute;
     top: 27px;
     right: 0;
-    width: 150px;
+    width: 170px;
     z-index: 10;
     background: #ffffff;
     border: 1px solid #000000;
+}
+
+.fcf-content .fcf-show-comments .fcf-user-filter-list ul {
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right:14px;
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list li {
@@ -40,7 +46,7 @@
 }
 
 .fcf-content .fcf-show-comments .fcf-user-filter-list li span {
-    width: 108px;
+    width: 100px;
     line-height: 14px;
     display: inline-block;
 }

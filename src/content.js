@@ -174,7 +174,7 @@ var CommentList = function($el, owner) {
     that.authorFilter.clear();
   });
 
-  this.$noComments = $('<li class="UFIRow fcf-no-comments">No comments</li>');
+  this.$noComments = $('<li class="UFIRow UFIFirstCommentComponent fcf-no-comments">No comments</li>');
 
   setInterval(function() {
     that.update();
