@@ -159,7 +159,7 @@ var CommentList = function($el, owner) {
     + '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
     +   '<img src="" width="23" height="23" />'
     + '</a>'
-    + '<a href="#" class="fcf-show-all-comments" title="View All Comments">'
+    + '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +   '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     + '</a>'
     + '</div>');
@@ -286,7 +286,7 @@ CommentList.prototype.filterAuthorComments = function() {
     }
   });
 
-  if (notFoundAuthors.filter(Number).length && !this.fetchComments()) {
+  if ((notFoundAuthors.filter(Number).length === filter.length)  && !this.fetchComments()) {
     this.toggleNoComments(true);
   } else {
     this.toggleNoComments(false);
