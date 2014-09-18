@@ -1,32 +1,65 @@
 // Feed
 var Feed = function() {
-  var that = this;
-
   this.contentList = {};
-
-  setInterval(function() {
-    that.parseNew();
-  }, 1000);
-
-  this.parseNew();
+  this.isTracking = false;
+  this.trackingPeriod = 1000;
 };
 
-Feed.prototype.parseNew = function() {
+Feed.prototype.startTracking = function() {
+  var that = this;
+
+  if (this.isTracking) {
+    return;
+  }
+
+  this.isTracking = true;
+
+  this.interval = setInterval(function() {
+    that.processNewContent();
+  }, this.trackingPeriod);
+
+  this.processNewContent();
+};
+
+Feed.prototype.stopTracking = function() {
+  if (this.isTracking) {
+    this.isTracking = false;
+    clearInterval(this.interval);
+  }
+};
+
+Feed.prototype.toggleTracking = function(start) {
+  if (start) {
+    this.startTracking();
+  } else {
+    this.stopTracking();
+  }
+};
+
+Feed.prototype.processNewContent = function() {
   var that = this;
 
   $('.userContentWrapper').each(function() {
-    var $el = $(this),
-        data = $el.parent().data('ft'),
-        id  = data ? data.mf_story_key : null;
-
-    if (id) {
-      if (!that.contentList[id]) {
-        that.contentList[id] = new Content(id, $el);
-      } else {
-        that.contentList[id].refresh($el);
-      }
-    }
+    that.addContent($(this));
   });
+};
+
+Feed.prototype.parseContentId = function($content) {
+  var data = $content.parent().data('ft');
+
+  return data ? data.mf_story_key : null;
+};
+
+Feed.prototype.addContent = function($content) {
+  var id = this.parseContentId($content);
+
+  if (id) {
+    if (!this.contentList[id]) {
+      this.contentList[id] = new Content(id, $content);
+    } else {
+      this.contentList[id].refresh($content);
+    }
+  }
 };
 
 // User
@@ -568,5 +601,15 @@ CommentAuthor.prototype.fetchImageUrl = function(callback) {
   callback(this.imageUrl);
 };
 
-// initialize
-var feed = new Feed();
+// App
+var App = function() {
+  this.newsFeed = new Feed();
+  var that = this;
+
+  setInterval(function() {
+    that.newsFeed.toggleTracking($('#newsFeedHeading').length);
+  }, 1000);
+};
+
+// Initialize
+new App();
