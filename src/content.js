@@ -1,11 +1,11 @@
-// Feed
-var Feed = function() {
+// News Feed
+var NewsFeed = function() {
   this.contentList = {};
   this.isTracking = false;
   this.trackingPeriod = 1000;
 };
 
-Feed.prototype.startTracking = function() {
+NewsFeed.prototype.startTracking = function() {
   var that = this;
 
   if (this.isTracking) {
@@ -21,14 +21,14 @@ Feed.prototype.startTracking = function() {
   this.processNewContent();
 };
 
-Feed.prototype.stopTracking = function() {
+NewsFeed.prototype.stopTracking = function() {
   if (this.isTracking) {
     this.isTracking = false;
     clearInterval(this.interval);
   }
 };
 
-Feed.prototype.toggleTracking = function(start) {
+NewsFeed.prototype.toggleTracking = function(start) {
   if (start) {
     this.startTracking();
   } else {
@@ -36,7 +36,7 @@ Feed.prototype.toggleTracking = function(start) {
   }
 };
 
-Feed.prototype.processNewContent = function() {
+NewsFeed.prototype.processNewContent = function() {
   var that = this;
 
   $('.userContentWrapper').each(function() {
@@ -44,13 +44,13 @@ Feed.prototype.processNewContent = function() {
   });
 };
 
-Feed.prototype.parseContentId = function($content) {
+NewsFeed.prototype.parseContentId = function($content) {
   var data = $content.parent().data('ft');
 
   return data ? data.mf_story_key : null;
 };
 
-Feed.prototype.addContent = function($content) {
+NewsFeed.prototype.addContent = function($content) {
   var id = this.parseContentId($content);
 
   if (id) {
@@ -60,6 +60,28 @@ Feed.prototype.addContent = function($content) {
       this.contentList[id].refresh($content);
     }
   }
+};
+
+// User Timeline
+var UserTimeline = function() {
+  NewsFeed.call(this);
+};
+
+UserTimeline.prototype = Object.create(NewsFeed.prototype);
+UserTimeline.prototype.constructor = UserTimeline;
+
+UserTimeline.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.timelineUnitContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
+UserTimeline.prototype.parseContentId = function($content) {
+  var data = $content.data('gt');
+
+  return data ? data.contentid : null;
 };
 
 // User
@@ -208,7 +230,7 @@ CommentList.prototype.init = function() {
 
   var that = this;
 
-  this.userFilterView = new UserFilterView(this.$el, this.owner, this.filter, this.users);
+  this.userFilterView = new UserFilterView(this.$el.parent(), this.owner, this.filter, this.users);
 
   this.filter.onChange(function() {
     that.filterComments();
@@ -436,14 +458,17 @@ var UserFilterView = function($el, owner, filter, users) {
 
   var that = this;
 
-  this.$panel = $('<div class="fcf-show-comments">'
-    + '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
-    +   '<img src="" width="23" height="23" />'
-    + '</a>'
-    + '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
-    +   '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
-    + '</a>'
-    + '</div>');
+  this.$panel = $('<div class="fcf-panel">'
+    + '<div class="fcf-panel-content">'
+    +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
+    +     '<img src="" width="23" height="23" />'
+    +   '</a>'
+    +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
+    +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
+    +   '</a>'
+    +   '<a href="#" class="fcf-user-filter-show" title="Add users">+</a>'
+    +   '<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>'
+    + '</div></div>');
 
   this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
     that.filter.add(that.owner);
@@ -453,17 +478,15 @@ var UserFilterView = function($el, owner, filter, users) {
     that.filter.clear();
   });
 
+  that.$el.before(that.$panel);
+
   this.owner.fetchImageUrl(function(imageUrl) {
     that.$panel.find('.fcf-show-owner-comments img').attr('src', imageUrl);
-    that.$el.find('.UFILikeSentenceText').append(that.$panel);
   });
 
-  this.$openLink = $('<a href="#" class="fcf-user-filter-show" title="Add users">+</a>');
+  this.$openLink = this.$panel.find('.fcf-user-filter-show');
 
-  this.$userList = $('<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>');
-
-  this.$panel.append(this.$openLink);
-  this.$panel.append(this.$userList);
+  this.$userList = this.$panel.find('.fcf-user-filter-list');
 
   this.$openLink.on('click', function() {
     that.$userList.toggle();
@@ -504,6 +527,8 @@ UserFilterView.prototype.update = function() {
   var $userList = $('<ul></ul>'),
       filter = this.filter,
       count = 0;
+
+  this.$panel.toggleClass('fcf-filter-mode', !!filter.length);
 
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
@@ -603,11 +628,14 @@ CommentAuthor.prototype.fetchImageUrl = function(callback) {
 
 // App
 var App = function() {
-  this.newsFeed = new Feed();
+  this.newsFeed = new NewsFeed();
+  this.userTimeline = new UserTimeline();
   var that = this;
 
   setInterval(function() {
     that.newsFeed.toggleTracking($('#newsFeedHeading').length);
+
+    that.userTimeline.toggleTracking($('#timeline_tab_content').length);
   }, 1000);
 };
 
