@@ -340,6 +340,8 @@ CommentList.prototype.filterComments = function() {
     }
   });
 
+  this.$el.find('.fcf-comment-visible').removeClass('fcf-last-comment').last().addClass('fcf-last-comment');
+
   var notFoundCount = notFoundAuthors.filter(Number).length;
 
   if (notFoundCount && !this.fetchComments() && (notFoundCount === filter.length)) {

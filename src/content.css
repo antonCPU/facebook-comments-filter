@@ -107,8 +107,14 @@
     display: block;
 }
 
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible.fcf-last-comment {
+    padding-bottom: 8px;
+}
+
 .fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments {
     display: block;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
 .fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment .fcf-show-author-comments {
