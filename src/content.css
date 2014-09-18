@@ -27,6 +27,7 @@
 
 .fcf-content .fcf-panel .fcf-show-all-comments {
     float: left;
+    padding-left: 5px;
 }
 
 .fcf-content .fcf-panel .fcf-user-filter-show {

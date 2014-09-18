@@ -84,6 +84,36 @@ UserTimeline.prototype.parseContentId = function($content) {
   return data ? data.contentid : null;
 };
 
+// Single Page Content
+var SingleFeedPost = function() {
+  NewsFeed.call(this);
+};
+
+SingleFeedPost.prototype = Object.create(NewsFeed.prototype);
+SingleFeedPost.prototype.constructor = UserTimeline;
+
+SingleFeedPost.prototype.parseContentId = function() {
+  return 'page';
+};
+
+SingleFeedPost.prototype.startTracking = function() {
+  if (this.isTracking) {
+    return;
+  }
+
+  this.isTracking = true;
+
+  this.contentList = {};
+
+  this.processNewContent();
+};
+
+SingleFeedPost.prototype.stopTracking = function() {
+  if (this.isTracking) {
+    this.isTracking = false;
+  }
+};
+
 // User
 var User = function($el) {
   this.$el = $el;
@@ -627,15 +657,35 @@ CommentAuthor.prototype.fetchImageUrl = function(callback) {
 
 // App
 var App = function() {
-  this.newsFeed = new NewsFeed();
-  this.userTimeline = new UserTimeline();
+  this.pages = {};
+
+  this.pages['news_feed'] = new NewsFeed();
+  this.pages['user_time_line'] = new UserTimeline();
+  this.pages['single_feed_post'] = new SingleFeedPost();
+
   var that = this;
 
   setInterval(function() {
-    that.newsFeed.toggleTracking($('#newsFeedHeading').length);
+    var page = that.detectPage();
 
-    that.userTimeline.toggleTracking($('#timeline_tab_content').length);
+    for (var i in that.pages) {
+      if (that.pages.hasOwnProperty(i)) {
+        that.pages[i].toggleTracking(i === page);
+      }
+    }
   }, 1000);
+};
+
+App.prototype.detectPage = function() {
+  if ($('[id^="topnews_main_stream"]').length) {
+    return 'news_feed';
+  } else if ($('#timeline_tab_content').length) {
+    return 'user_time_line';
+  } else if ($('.homeWiderContent').length) {
+    return 'single_feed_post';
+  }
+
+  return false;
 };
 
 // Initialize
