@@ -1,31 +1,49 @@
-.fcf-content .fcf-show-comments {
-    position: absolute;
-    top: 4px;
-    right: 10px;
+/* Filter Panel */
+.fcf-content .fcf-panel {
+    padding: 5px 12px;
+    height: 23px;
+    position: relative;
+    border-top: 1px solid #e1e2e3;
 }
 
-.fcf-content .fcf-show-comments .fcf-show-owner-comments {
-    float: left;
+.fcf-content.userContentWrapper .fcf-panel {
+    width: 470px;
+    left: -12px;
+    bottom: -8px;
+    background-color: #f6f7f8;
 }
 
-.fcf-content .fcf-show-comments .fcf-show-all-comments {
-    float: left;
+.fcf-content.timelineUnitContainer .fcf-panel {
+    background-color: #fafbfb;
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-show {
+.fcf-content .fcf-panel .fcf-panel-content {
     float: right;
+}
+
+.fcf-content .fcf-panel .fcf-show-owner-comments {
+    float: left;
+}
+
+.fcf-content .fcf-panel .fcf-show-all-comments {
+    float: left;
+    padding-left: 5px;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-show {
+    float: left;
     padding-left: 5px;
     font-size: 20px;
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-show:hover {
+.fcf-content .fcf-panel .fcf-user-filter-show:hover {
     text-decoration: none;
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-list {
+.fcf-content .fcf-panel .fcf-user-filter-list {
     display: none;
     position: absolute;
-    top: 27px;
+    top: 30px;
     right: 0;
     width: 180px;
     z-index: 10;
@@ -37,13 +55,13 @@
     -webkit-box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-list ul {
+.fcf-content .fcf-panel .fcf-user-filter-list ul {
     max-height: 222px;
     overflow-y: auto;
     overflow-x: hidden;
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-list li {
+.fcf-content .fcf-panel .fcf-user-filter-list li {
     margin: 5px;
     height: 26px;
     line-height: 26px;
@@ -52,49 +70,54 @@
     text-overflow: ellipsis;
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-list li span {
+.fcf-content .fcf-panel .fcf-user-filter-list li span {
     line-height: 26px;
     display: inline-block;
 }
 
-.fcf-content .fcf-show-comments .fcf-user-filter-list img {
+.fcf-content .fcf-panel .fcf-user-filter-list img {
     vertical-align: middle;
     padding-right: 5px;
     float: left;
 }
 
-/* View all mode */
-.fcf-content .fcf-show-comments .fcf-show-all-comments {
+.fcf-content .fcf-panel .fcf-show-all-comments {
     display: none;
 }
 
-.fcf-content .fcf-no-comments {
+.fcf-content .fcf-panel .fcf-show-author-comments {
+    display: none;
+}
+
+.fcf-content .fcf-panel.fcf-filter-mode .fcf-show-all-comments {
+    display: block;
+}
+
+/* Comment List */
+.fcf-content .fcf-comment-list .fcf-no-comments {
+    display: none;
     text-align: center;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .UFIComment {
     display: none;
 }
 
-.fcf-content .fcf-comment-list .fcf-show-author-comments {
-    display: none;
-}
-
-/* Filter mode */
-.fcf-content .fcf-filter-mode .fcf-show-comments .fcf-show-all-comments {
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment.fcf-comment-visible {
     display: block;
 }
 
-.fcf-content .fcf-filter-mode .UFIComment {
-    display: none;
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible.fcf-last-comment {
+    padding-bottom: 8px;
 }
 
-.fcf-content .fcf-filter-mode .fcf-comment.fcf-comment-visible {
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments {
     display: block;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
 
-.fcf-content .fcf-filter-mode .fcf-no-comments {
-    display: block;
-}
-
-.fcf-content .fcf-filter-mode .fcf-comment .fcf-show-author-comments {
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment .fcf-show-author-comments {
     display: block;
     position: absolute;
     right: 0;
