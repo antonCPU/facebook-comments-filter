@@ -460,9 +460,7 @@ var UserFilterView = function($el, owner, filter, users) {
 
   this.$panel = $('<div class="fcf-panel">'
     + '<div class="fcf-panel-content">'
-    +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments">'
-    +     '<img src="" width="23" height="23" />'
-    +   '</a>'
+    +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments"></a>'
     +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     +   '</a>'
@@ -481,7 +479,8 @@ var UserFilterView = function($el, owner, filter, users) {
   that.$el.before(that.$panel);
 
   this.owner.fetchImageUrl(function(imageUrl) {
-    that.$panel.find('.fcf-show-owner-comments img').attr('src', imageUrl);
+    var $ownerImage = $('<img src="' + imageUrl + '" width="23" height="23" />');
+    that.$panel.find('.fcf-show-owner-comments').append($ownerImage);
   });
 
   this.$openLink = this.$panel.find('.fcf-user-filter-show');
