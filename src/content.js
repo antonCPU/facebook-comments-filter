@@ -193,13 +193,22 @@ var Content = function(id, $el) {
     return;
   }
 
-  this.comments = new CommentList($el.find('.UFIList'), this.owner);
-
   this.init();
 };
 
 Content.prototype.init = function() {
   this.$el.addClass('fcf-content');
+
+  this.filter = new UserFilter();
+  this.users  = new UserList();
+
+  this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
+
+  this.comments = new CommentList(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+
+  if (!this.filter.length) {
+    this.filterPanel.toggle(!!this.comments.getCount());
+  }
 };
 
 Content.prototype.refresh = function($el) {
@@ -207,8 +216,6 @@ Content.prototype.refresh = function($el) {
 
   if (!this.$el.hasClass('fcf-content')) {
     this.init();
-
-    this.comments.refresh($el.find('.UFIList'));
   }
 };
 
@@ -236,45 +243,33 @@ ContentOwner.prototype.fetchImageUrl = function(callback) {
   callback(this.imageUrl);
 };
 
-var CommentList = function($el, owner) {
+var CommentList = function($el, owner, filter, users) {
   this.$el = $el;
   this.owner = owner;
+  this.filter = filter;
+  this.users = users;
 
   this.$noComments = $('<li class="UFIRow UFIFirstCommentComponent fcf-no-comments">No comments</li>');
 
   var that = this;
 
   setInterval(function() {
-    that.update();
+    that.processNewComments();
   }, 200);
-
-  this.init();
-};
-
-CommentList.prototype.init = function() {
-  this.comments = [];
-  this.filter = new UserFilter();
-  this.users = new UserList();
-
-  this.$el.addClass('fcf-comment-list');
-
-  var that = this;
-
-  this.userFilterView = new UserFilterView(this.$el.parent(), this.owner, this.filter, this.users);
 
   this.filter.onChange(function() {
     that.filterComments();
   });
 
-  this.update();
+  this.init();
 };
 
-CommentList.prototype.refresh = function($el) {
-  this.$el = $el;
+CommentList.prototype.init = function() {
+  this.$el.addClass('fcf-comment-list');
 
-  if (!this.$el.hasClass('fcf-comment-list')) {
-    this.init();
-  }
+  this.comments = [];
+
+  this.processNewComments();
 };
 
 CommentList.prototype.processNewComments = function() {
@@ -304,14 +299,6 @@ CommentList.prototype.processNewComments = function() {
 
   if (count) {
     this.filterComments();
-  }
-};
-
-CommentList.prototype.update = function() {
-  this.processNewComments();
-
-  if (!this.filter.length) {
-    this.userFilterView.toggle(!!this.getCount());
   }
 };
 
@@ -480,7 +467,7 @@ UserFilter.prototype.getIds = function() {
 };
 
 // User Filter View
-var UserFilterView = function($el, owner, filter, users) {
+var UserFilterPanel = function($el, owner, filter, users) {
   this.$el = $el;
   this.owner = owner;
   this.filter = filter;
@@ -506,7 +493,7 @@ var UserFilterView = function($el, owner, filter, users) {
     that.filter.clear();
   });
 
-  that.$el.before(that.$panel);
+  that.$el.find('.UFIContainer').before(that.$panel);
 
   this.owner.fetchImageUrl(function(imageUrl) {
     var $ownerImage = $('<img src="' + imageUrl + '" width="23" height="23" />');
@@ -548,11 +535,11 @@ var UserFilterView = function($el, owner, filter, users) {
   });
 };
 
-UserFilterView.prototype.toggle = function(show) {
+UserFilterPanel.prototype.toggle = function(show) {
   this.$panel.toggle(show);
 };
 
-UserFilterView.prototype.update = function() {
+UserFilterPanel.prototype.update = function() {
   var $userList = $('<ul></ul>'),
       filter = this.filter,
       count = 0;
