@@ -378,43 +378,47 @@ CommentList.prototype.fetchComments = function() {
 
 // User List
 var UserList = function() {
-  this.users = {};
+  this.list = [];
+  this.ids  = [];
   this.length = 0;
   this.onChangeListeners = [];
 };
 
 UserList.prototype.add = function(user) {
-  if (!this.users[user.getId()]) {
-    this.users[user.getId()] = user;
+  if (-1 === this.ids.indexOf(user.getId())) {
+    this.list.push(user);
+    this.ids.push(user.getId());
     this.length++;
     this.triggerOnChange();
   }
 };
 
 UserList.prototype.remove = function(user) {
-  if (this.users[user.getId()]) {
-    delete this.users[user.getId()];
+  var index = this.ids.indexOf(user.getId());
+
+  if (-1 !== index) {
+    delete this.list[index];
+    delete this.ids[index];
     this.length--;
     this.triggerOnChange();
   }
 };
 
 UserList.prototype.clear = function() {
-  this.users = {};
+  this.list   = [];
+  this.ids    = [];
   this.length = 0;
   this.triggerOnChange();
 };
 
 UserList.prototype.forEach = function(callback) {
-  for (var id in this.users) {
-    if (this.users.hasOwnProperty(id)) {
-      callback(this.users[id]);
-    }
-  }
+  this.list.forEach(callback);
 };
 
 UserList.prototype.get = function(id) {
-  return this.users[id] || null;
+  var index = this.ids.indexOf(id.toString());
+
+  return -1 !== index ? this.list[index] : null;
 };
 
 UserList.prototype.merge = function(users) {
@@ -422,8 +426,9 @@ UserList.prototype.merge = function(users) {
       count = 0;
 
   users.forEach(function(user) {
-    if (!that.users[user.getId()]) {
-      that.users[user.getId()] = user;
+    if (!that.get(user.getId())) {
+      that.list.push(user);
+      that.ids.push(user.getId());
       count++;
     }
   });
@@ -455,17 +460,11 @@ UserFilter.prototype = Object.create(UserList.prototype);
 UserFilter.prototype.constructor = UserFilter;
 
 UserFilter.prototype.has = function(user) {
-  return !!this.users[user.getId()] || false;
+  return !!this.get(user.getId());
 };
 
 UserFilter.prototype.getIds = function() {
-  var ids = [];
-
-  this.forEach(function(user) {
-    ids.push(user.getId());
-  });
-
-  return ids;
+  return this.ids.slice();
 };
 
 UserFilter.prototype.removeById = function(id) {
@@ -492,7 +491,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     +   '</a>'
     +   '<div class="fcf-selected-users"></div>'
-    +   '<a href="#" class="fcf-user-filter-show" title="Add users">+</a>'
+    +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
     +   '<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>'
     + '</div></div>');
 
