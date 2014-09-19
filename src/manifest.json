@@ -3,7 +3,7 @@
 
   "name": "Comments Filter for Facebook",
   "description": "Simplifies search of comments.",
-  "version": "0.6",
+  "version": "0.7",
 
   "content_scripts": [
     {

@@ -468,6 +468,14 @@ UserFilter.prototype.getIds = function() {
   return ids;
 };
 
+UserFilter.prototype.removeById = function(id) {
+  var user = this.get(id);
+
+  if (user) {
+    this.remove(user);
+  }
+};
+
 // User Filter View
 var UserFilterPanel = function($el, owner, filter, users) {
   this.$el = $el;
@@ -483,6 +491,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     +   '</a>'
+    +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Add users">+</a>'
     +   '<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>'
     + '</div></div>');
@@ -506,6 +515,8 @@ var UserFilterPanel = function($el, owner, filter, users) {
 
   this.$userList = this.$panel.find('.fcf-user-filter-list');
 
+  this.$selectedUsers = this.$panel.find('.fcf-selected-users');
+
   this.$openLink.on('click', function() {
     that.$userList.toggle();
   });
@@ -528,12 +539,17 @@ var UserFilterPanel = function($el, owner, filter, users) {
     }
   });
 
+  this.$selectedUsers.on('click', 'a', function() {
+    that.filter.removeById($(this).data('id'));
+  });
+
   this.users.onChange(function() {
-    that.update();
+    that.updateUsers();
   });
 
   this.filter.onChange(function() {
-    that.update();
+    that.updateUsers();
+    that.updateSelectedUsers();
   });
 };
 
@@ -541,12 +557,10 @@ UserFilterPanel.prototype.toggle = function(show) {
   this.$panel.toggle(show);
 };
 
-UserFilterPanel.prototype.update = function() {
+UserFilterPanel.prototype.updateUsers = function() {
   var $userList = $('<ul></ul>'),
       filter = this.filter,
       count = 0;
-
-  this.$panel.toggleClass('fcf-filter-mode', !!filter.length);
 
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
@@ -568,8 +582,25 @@ UserFilterPanel.prototype.update = function() {
   }
 
   this.$userList.find('ul').replaceWith($userList);
+};
 
-  this.$panel.find('.fcf-show-owner-comments').toggle(!filter.has(this.owner));
+UserFilterPanel.prototype.updateSelectedUsers = function() {
+  var $selectedList = this.$selectedUsers;
+
+  this.$panel.toggleClass('fcf-filter-mode', !!this.filter.length);
+  this.$panel.find('.fcf-show-owner-comments').toggle(!this.filter.has(this.owner));
+
+  $selectedList.empty();
+
+  this.filter.forEach(function(user) {
+    var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + ' comments"></a>');
+
+    user.fetchImageUrl(function(imageUrl) {
+      $user.append($('<img src="' + imageUrl + '" width="23px;" height="23px;" />'));
+    });
+
+    $selectedList.append($user);
+  });
 };
 
 // Comment
