@@ -93,6 +93,24 @@
     display: block;
 }
 
+.fcf-content .fcf-panel .fcf-selected-users {
+    display: none;
+    float: left;
+    margin-left: 5px;
+}
+
+.fcf-content .fcf-panel .fcf-selected-users a {
+    margin-left: 3px;
+}
+
+.fcf-content .fcf-panel .fcf-selected-users a:first-child {
+    margin-left: 0;
+}
+
+.fcf-content .fcf-panel.fcf-filter-mode .fcf-selected-users {
+    display: block;
+}
+
 /* Comment List */
 .fcf-content .fcf-comment-list .fcf-no-comments {
     display: none;

@@ -378,43 +378,47 @@ CommentList.prototype.fetchComments = function() {
 
 // User List
 var UserList = function() {
-  this.users = {};
+  this.list = [];
+  this.ids  = [];
   this.length = 0;
   this.onChangeListeners = [];
 };
 
 UserList.prototype.add = function(user) {
-  if (!this.users[user.getId()]) {
-    this.users[user.getId()] = user;
+  if (-1 === this.ids.indexOf(user.getId())) {
+    this.list.push(user);
+    this.ids.push(user.getId());
     this.length++;
     this.triggerOnChange();
   }
 };
 
 UserList.prototype.remove = function(user) {
-  if (this.users[user.getId()]) {
-    delete this.users[user.getId()];
+  var index = this.ids.indexOf(user.getId());
+
+  if (-1 !== index) {
+    delete this.list[index];
+    delete this.ids[index];
     this.length--;
     this.triggerOnChange();
   }
 };
 
 UserList.prototype.clear = function() {
-  this.users = {};
+  this.list   = [];
+  this.ids    = [];
   this.length = 0;
   this.triggerOnChange();
 };
 
 UserList.prototype.forEach = function(callback) {
-  for (var id in this.users) {
-    if (this.users.hasOwnProperty(id)) {
-      callback(this.users[id]);
-    }
-  }
+  this.list.forEach(callback);
 };
 
 UserList.prototype.get = function(id) {
-  return this.users[id] || null;
+  var index = this.ids.indexOf(id.toString());
+
+  return -1 !== index ? this.list[index] : null;
 };
 
 UserList.prototype.merge = function(users) {
@@ -422,8 +426,9 @@ UserList.prototype.merge = function(users) {
       count = 0;
 
   users.forEach(function(user) {
-    if (!that.users[user.getId()]) {
-      that.users[user.getId()] = user;
+    if (!that.get(user.getId())) {
+      that.list.push(user);
+      that.ids.push(user.getId());
       count++;
     }
   });
@@ -455,17 +460,19 @@ UserFilter.prototype = Object.create(UserList.prototype);
 UserFilter.prototype.constructor = UserFilter;
 
 UserFilter.prototype.has = function(user) {
-  return !!this.users[user.getId()] || false;
+  return !!this.get(user.getId());
 };
 
 UserFilter.prototype.getIds = function() {
-  var ids = [];
+  return this.ids.slice();
+};
 
-  this.forEach(function(user) {
-    ids.push(user.getId());
-  });
+UserFilter.prototype.removeById = function(id) {
+  var user = this.get(id);
 
-  return ids;
+  if (user) {
+    this.remove(user);
+  }
 };
 
 // User Filter View
@@ -483,7 +490,8 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     +   '</a>'
-    +   '<a href="#" class="fcf-user-filter-show" title="Add users">+</a>'
+    +   '<div class="fcf-selected-users"></div>'
+    +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
     +   '<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>'
     + '</div></div>');
 
@@ -505,6 +513,8 @@ var UserFilterPanel = function($el, owner, filter, users) {
   this.$openLink = this.$panel.find('.fcf-user-filter-show');
 
   this.$userList = this.$panel.find('.fcf-user-filter-list');
+
+  this.$selectedUsers = this.$panel.find('.fcf-selected-users');
 
   this.$openLink.on('click', function() {
     that.$userList.toggle();
@@ -528,12 +538,17 @@ var UserFilterPanel = function($el, owner, filter, users) {
     }
   });
 
+  this.$selectedUsers.on('click', 'a', function() {
+    that.filter.removeById($(this).data('id'));
+  });
+
   this.users.onChange(function() {
-    that.update();
+    that.updateUsers();
   });
 
   this.filter.onChange(function() {
-    that.update();
+    that.updateUsers();
+    that.updateSelectedUsers();
   });
 };
 
@@ -541,12 +556,10 @@ UserFilterPanel.prototype.toggle = function(show) {
   this.$panel.toggle(show);
 };
 
-UserFilterPanel.prototype.update = function() {
+UserFilterPanel.prototype.updateUsers = function() {
   var $userList = $('<ul></ul>'),
       filter = this.filter,
       count = 0;
-
-  this.$panel.toggleClass('fcf-filter-mode', !!filter.length);
 
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
@@ -568,8 +581,25 @@ UserFilterPanel.prototype.update = function() {
   }
 
   this.$userList.find('ul').replaceWith($userList);
+};
 
-  this.$panel.find('.fcf-show-owner-comments').toggle(!filter.has(this.owner));
+UserFilterPanel.prototype.updateSelectedUsers = function() {
+  var $selectedList = this.$selectedUsers;
+
+  this.$panel.toggleClass('fcf-filter-mode', !!this.filter.length);
+  this.$panel.find('.fcf-show-owner-comments').toggle(!this.filter.has(this.owner));
+
+  $selectedList.empty();
+
+  this.filter.forEach(function(user) {
+    var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + ' comments"></a>');
+
+    user.fetchImageUrl(function(imageUrl) {
+      $user.append($('<img src="' + imageUrl + '" width="23px;" height="23px;" />'));
+    });
+
+    $selectedList.append($user);
+  });
 };
 
 // Comment
