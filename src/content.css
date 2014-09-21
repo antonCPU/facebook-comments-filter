@@ -135,6 +135,10 @@
     padding-bottom: 8px;
 }
 
+.fcf-content .fcf-comment-list .fcf-comment .fcf-show-author-comments {
+    display: none;
+}
+
 .fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment .fcf-show-author-comments {
     display: block;
     position: absolute;
