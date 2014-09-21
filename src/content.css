@@ -150,3 +150,7 @@
 .fcf-content .fcf-comment-list.fcf-filter-mode .UFIReplyList {
     display: none;
 }
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .UFIAddCommentLink {
+    display: none;
+}

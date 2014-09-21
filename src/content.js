@@ -314,6 +314,7 @@ CommentList.prototype.filterComments = function() {
   this.$el.toggleClass('fcf-filter-mode', !!filter.length);
 
   if (!filter.length) {
+    this.toggleNoComments(false);
     return;
   }
 
@@ -379,6 +380,8 @@ CommentList.prototype.fetchComments = function() {
 
 var PageCommentList = function($el, owner, filter, users) {
   CommentList.apply(this, arguments);
+
+  this.$noComments.removeClass('UFIRow UFIFirstCommentComponent');
 };
 
 PageCommentList.prototype = Object.create(CommentList.prototype);
@@ -387,16 +390,12 @@ PageCommentList.prototype.constructor = PageCommentList;
 PageCommentList.prototype.toggleNoComments = function(needShow) {
   if (needShow) {
     if (!this.$el.find('.fcf-no-comments').length) {
-      if (this.$el.find('> .UFIAddComment').length) {
-        this.$el.find('> .UFIAddComment').before(this.$noComments);
-      } else {
-        this.$el.append(this.$noComments);
-      }
+      this.$el.append(this.$noComments);
     }
   } else {
     this.$el.find('.fcf-no-comments').remove();
   }
-}
+};
 
 // User List
 var UserList = function() {
