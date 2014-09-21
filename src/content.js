@@ -390,7 +390,11 @@ PageCommentList.prototype.constructor = PageCommentList;
 PageCommentList.prototype.toggleNoComments = function(needShow) {
   if (needShow) {
     if (!this.$el.find('.fcf-no-comments').length) {
-      this.$el.append(this.$noComments);
+      if (this.$el.find('.UFIAddCommentLink').length) {
+        this.$el.find('.UFIAddCommentLink').before(this.$noComments);
+      } else {
+        this.$el.append(this.$noComments);
+      }
     }
   } else {
     this.$el.find('.fcf-no-comments').remove();
