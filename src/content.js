@@ -204,7 +204,8 @@ Content.prototype.init = function() {
 
   this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
 
-  this.comments = new CommentList(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+  var CommentPrototype = this.$el.find('.UFIList .UFIOrderingModeSelector').length ? PageCommentList : CommentList;
+  this.comments = new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
 
   if (!this.filter.length) {
     this.filterPanel.toggle(!!this.comments.getCount());
@@ -375,6 +376,27 @@ CommentList.prototype.fetchComments = function() {
 
   return false;
 };
+
+var PageCommentList = function($el, owner, filter, users) {
+  CommentList.apply(this, arguments);
+};
+
+PageCommentList.prototype = Object.create(CommentList.prototype);
+PageCommentList.prototype.constructor = PageCommentList;
+
+PageCommentList.prototype.toggleNoComments = function(needShow) {
+  if (needShow) {
+    if (!this.$el.find('.fcf-no-comments').length) {
+      if (this.$el.find('> .UFIAddComment').length) {
+        this.$el.find('> .UFIAddComment').before(this.$noComments);
+      } else {
+        this.$el.append(this.$noComments);
+      }
+    }
+  } else {
+    this.$el.find('.fcf-no-comments').remove();
+  }
+}
 
 // User List
 var UserList = function() {

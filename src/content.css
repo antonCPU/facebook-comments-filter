@@ -145,3 +145,8 @@
     right: 0;
     bottom: -4px;
 }
+
+/* Page Comment List */
+.fcf-content .fcf-comment-list.fcf-filter-mode .UFIReplyList {
+    display: none;
+}
