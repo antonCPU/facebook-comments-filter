@@ -132,10 +132,10 @@ PageFeed.prototype.createContent = function(id, $content) {
 
 // Popup Post
 var PopupPost = function() {
-  SingleFeedPost.call(this);
+  NewsFeed.call(this);
 };
 
-PopupPost.prototype = Object.create(SingleFeedPost.prototype);
+PopupPost.prototype = Object.create(NewsFeed.prototype);
 PopupPost.prototype.constructor = PopupPost;
 
 PopupPost.prototype.processNewContent = function() {
@@ -148,6 +148,28 @@ PopupPost.prototype.processNewContent = function() {
 
 PopupPost.prototype.createContent = function(id, $content) {
   return new PopupContent(id, $content);
+};
+
+PopupPost.prototype.parseContentId = function() {
+  return window.location.href;
+};
+
+PopupPost.prototype.startTracking = function() {
+  var that = this;
+
+  if (this.isTracking) {
+    return;
+  }
+
+  this.isTracking = true;
+
+  this.contentList = {};
+
+  this.interval = setInterval(function() {
+    that.processNewContent();
+  }, this.trackingPeriod);
+
+  this.processNewContent();
 };
 
 // User
