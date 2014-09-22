@@ -118,6 +118,10 @@ SingleFeedPost.prototype.stopTracking = function() {
   }
 };
 
+SingleFeedPost.prototype.createContent = function(id, $content) {
+  return new PageContent(id, $content);
+};
+
 // Page Feed
 var PageFeed = function() {
   UserTimeline.call(this);
