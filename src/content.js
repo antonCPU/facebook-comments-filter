@@ -642,7 +642,7 @@ UserFilterPanel.prototype.updateSelectedUsers = function() {
     var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + ' comments"></a>');
 
     user.fetchImageUrl(function(imageUrl) {
-      $user.append($('<img src="' + imageUrl + '" width="23px;" height="23px;" />'));
+      $user.append($('<img src="' + imageUrl + '" width="23" height="23" />'));
     });
 
     $selectedList.append($user);
