@@ -537,7 +537,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '</a>'
     +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
-    +   '<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>'
+    +   '<div class="fcf-user-filter-list"><ul><li>Loading...</li></ul></div>'
     + '</div></div>');
 
   this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
@@ -560,6 +560,8 @@ var UserFilterPanel = function($el, owner, filter, users) {
   this.$userList = this.$panel.find('.fcf-user-filter-list');
 
   this.$selectedUsers = this.$panel.find('.fcf-selected-users');
+
+  this.$noUsers = $('<li class="fcf-no-users">No Users</li>');
 
   this.$openLink.on('click', function() {
     that.$userList.toggle();
@@ -622,7 +624,7 @@ UserFilterPanel.prototype.updateUsers = function() {
   });
 
   if (!count) {
-    $userList.append('<li>No users</li>');
+    $userList.append(this.$noUsers);
   }
 
   this.$userList.find('ul').replaceWith($userList);
