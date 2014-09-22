@@ -115,6 +115,10 @@
     display: block;
 }
 
+.fcf-content.fbPhotoSnowliftContainer .fcf-panel {
+    padding: 4px 0;
+}
+
 /* Comment List */
 .fcf-content .fcf-comment-list .fcf-no-comments {
     display: none;

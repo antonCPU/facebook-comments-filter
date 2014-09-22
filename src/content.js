@@ -146,6 +146,10 @@ PopupPost.prototype.processNewContent = function() {
   });
 };
 
+PopupPost.prototype.createContent = function(id, $content) {
+  return new PopupContent(id, $content);
+};
+
 // User
 var User = function($el) {
   this.$el = $el;
@@ -234,7 +238,7 @@ Content.prototype.init = function() {
   this.filter = new UserFilter();
   this.users  = new UserList();
 
-  this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
+  this.filterPanel = this.createFilterPanel();
 
   this.comments = this.createCommentList();
 
@@ -256,6 +260,14 @@ Content.prototype.createCommentList = function() {
   return new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
 };
 
+Content.prototype.createFilterPanel = function() {
+  var $panel = $('<div class="fcf-panel"></div>');
+
+  this.$el.find('.UFIContainer').before($panel);
+
+  return new UserFilterPanel($panel, this.owner, this.filter, this.users);
+};
+
 // Page Content
 var PageContent = function(id, $el) {
   Content.apply(this, arguments);
@@ -268,6 +280,26 @@ PageContent.prototype.createCommentList = function() {
   return new PageCommentList(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
 };
 
+// Popup Content
+var PopupContent = function(id, $el) {
+  Content.apply(this, arguments);
+};
+
+PopupContent.prototype = Object.create(Content.prototype);
+PopupContent.prototype.constructor = PopupContent;
+
+PopupContent.prototype.createFilterPanel = function() {
+  var $panel = $('<div class="fcf-panel"></div>');
+
+  this.$el.find('.fbPhotosSnowliftFeedback').prepend($panel);
+
+  return new UserFilterPanel($panel, this.owner, this.filter, this.users);
+};
+
+PopupContent.prototype.createCommentList = function() {
+  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
+  return new CommentPrototype(this.$el.find('.UFIList').eq(0), this.owner, this.filter, this.users);
+};
 
 // Content User
 var ContentOwner = function($content) {
@@ -589,8 +621,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
 
   var that = this;
 
-  this.$panel = $('<div class="fcf-panel">'
-    + '<div class="fcf-panel-content">'
+  this.$el.append($('<div class="fcf-panel-content">'
     +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments"></a>'
     +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
@@ -598,28 +629,28 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
     +   '<div class="fcf-user-filter-list"><ul><li>Loading...</li></ul></div>'
-    + '</div></div>');
+    + '</div>'
+  ));
 
-  this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
+  this.$el.find('a.fcf-show-owner-comments').on('click', function() {
     that.filter.add(that.owner);
   });
 
-  this.$panel.find('a.fcf-show-all-comments').on('click', function() {
+  this.$el.find('a.fcf-show-all-comments').on('click', function() {
     that.filter.clear();
   });
 
-  that.$el.find('.UFIContainer').before(that.$panel);
 
   this.owner.fetchImageUrl(function(imageUrl) {
     var $ownerImage = $('<img src="' + imageUrl + '" width="23" height="23" />');
-    that.$panel.find('.fcf-show-owner-comments').append($ownerImage);
+    that.$el.find('.fcf-show-owner-comments').append($ownerImage);
   });
 
-  this.$openLink = this.$panel.find('.fcf-user-filter-show');
+  this.$openLink = this.$el.find('.fcf-user-filter-show');
 
-  this.$userList = this.$panel.find('.fcf-user-filter-list');
+  this.$userList = this.$el.find('.fcf-user-filter-list');
 
-  this.$selectedUsers = this.$panel.find('.fcf-selected-users');
+  this.$selectedUsers = this.$el.find('.fcf-selected-users');
 
   this.$noUsers = $('<li class="fcf-no-users">No Users</li>');
 
@@ -660,7 +691,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
 };
 
 UserFilterPanel.prototype.toggle = function(show) {
-  this.$panel.toggle(show);
+  this.$el.toggle(show);
 };
 
 UserFilterPanel.prototype.updateUsers = function() {
@@ -693,8 +724,8 @@ UserFilterPanel.prototype.updateUsers = function() {
 UserFilterPanel.prototype.updateSelectedUsers = function() {
   var $selectedList = this.$selectedUsers;
 
-  this.$panel.toggleClass('fcf-filter-mode', !!this.filter.length);
-  this.$panel.find('.fcf-show-owner-comments').toggle(!this.filter.has(this.owner));
+  this.$el.toggleClass('fcf-filter-mode', !!this.filter.length);
+  this.$el.find('.fcf-show-owner-comments').toggle(!this.filter.has(this.owner));
 
   $selectedList.empty();
 
