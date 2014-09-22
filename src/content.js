@@ -88,13 +88,13 @@ UserTimeline.prototype.parseContentId = function($content) {
   return data ? data.contentid : null;
 };
 
-// Single Page Content
+// Single Feed Post
 var SingleFeedPost = function() {
   NewsFeed.call(this);
 };
 
 SingleFeedPost.prototype = Object.create(NewsFeed.prototype);
-SingleFeedPost.prototype.constructor = UserTimeline;
+SingleFeedPost.prototype.constructor = SingleFeedPost;
 
 SingleFeedPost.prototype.parseContentId = function() {
   return 'page';
@@ -170,6 +170,40 @@ PopupPost.prototype.startTracking = function() {
   }, this.trackingPeriod);
 
   this.processNewContent();
+};
+
+// Photo Page
+var PhotoPage = function() {
+  PopupPost.call(this);
+};
+
+PhotoPage.prototype = Object.create(PopupPost.prototype);
+PhotoPage.prototype.constructor = PhotoPage;
+
+PhotoPage.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.photoUfiContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
+PhotoPage.prototype.startTracking = function() {
+  if (this.isTracking) {
+    return;
+  }
+
+  this.isTracking = true;
+
+  this.contentList = {};
+
+  this.processNewContent();
+};
+
+PhotoPage.prototype.stopTracking = function() {
+  if (this.isTracking) {
+    this.isTracking = false;
+  }
 };
 
 // User
@@ -313,7 +347,7 @@ PopupContent.prototype.constructor = PopupContent;
 PopupContent.prototype.createFilterPanel = function() {
   var $panel = $('<div class="fcf-panel"></div>');
 
-  this.$el.find('.fbPhotosSnowliftFeedback').prepend($panel);
+  this.$el.find('.UFIContainer').parent().prepend($panel);
 
   return new UserFilterPanel($panel, this.owner, this.filter, this.users);
 };
@@ -842,6 +876,7 @@ var App = function() {
   this.pages['user_time_line'] = new UserTimeline();
   this.pages['single_feed_post'] = new SingleFeedPost();
   this.pages['page_feed'] = new PageFeed();
+  this.pages['photo_page'] = new PhotoPage();
 
   this.popup = new PopupPost();
 
@@ -869,6 +904,8 @@ App.prototype.detectPage = function() {
     return 'single_feed_post';
   } else if ($('[id^="PagePostsPagelet"]').length) {
     return 'page_feed';
+  } else if ($('#fbPhotoPageContainer').length) {
+    return 'photo_page';
   }
 
   return false;
