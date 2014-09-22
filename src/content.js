@@ -55,11 +55,15 @@ NewsFeed.prototype.addContent = function($content) {
 
   if (id) {
     if (!this.contentList[id]) {
-      this.contentList[id] = new Content(id, $content);
+      this.contentList[id] = this.createContent(id, $content);
     } else {
       this.contentList[id].refresh($content);
     }
   }
+};
+
+NewsFeed.prototype.createContent = function(id, $content) {
+  return new Content(id, $content);
 };
 
 // User Timeline
@@ -112,6 +116,18 @@ SingleFeedPost.prototype.stopTracking = function() {
   if (this.isTracking) {
     this.isTracking = false;
   }
+};
+
+// Page Feed
+var PageFeed = function() {
+  UserTimeline.call(this);
+};
+
+PageFeed.prototype = Object.create(UserTimeline.prototype);
+PageFeed.prototype.constructor = PageFeed;
+
+PageFeed.prototype.createContent = function(id, $content) {
+  return new PageContent(id, $content);
 };
 
 // User
@@ -204,8 +220,7 @@ Content.prototype.init = function() {
 
   this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
 
-  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
-  this.comments = new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+  this.comments = this.createCommentList();
 
   if (!this.filter.length) {
     this.filterPanel.toggle(!!this.comments.getCount());
@@ -219,6 +234,24 @@ Content.prototype.refresh = function($el) {
     this.init();
   }
 };
+
+Content.prototype.createCommentList = function() {
+  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
+  return new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+};
+
+// Page Content
+var PageContent = function(id, $el) {
+  Content.apply(this, arguments);
+};
+
+PageContent.prototype = Object.create(Content.prototype);
+PageContent.prototype.constructor = PageContent;
+
+PageContent.prototype.createCommentList = function() {
+  return new PageCommentList(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+};
+
 
 // Content User
 var ContentOwner = function($content) {
@@ -728,6 +761,7 @@ var App = function() {
   this.pages['news_feed'] = new NewsFeed();
   this.pages['user_time_line'] = new UserTimeline();
   this.pages['single_feed_post'] = new SingleFeedPost();
+  this.pages['page_feed'] = new PageFeed();
 
   var that = this;
 
@@ -749,6 +783,8 @@ App.prototype.detectPage = function() {
     return 'user_time_line';
   } else if ($('.homeWiderContent').length) {
     return 'single_feed_post';
+  } else if ($('[id^="PagePostsPagelet"]').length) {
+    return 'page_feed';
   }
 
   return false;
