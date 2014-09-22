@@ -204,7 +204,8 @@ Content.prototype.init = function() {
 
   this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
 
-  this.comments = new CommentList(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
+  this.comments = new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
 
   if (!this.filter.length) {
     this.filterPanel.toggle(!!this.comments.getCount());
@@ -277,7 +278,7 @@ CommentList.prototype.processNewComments = function() {
       users = [],
       count = 0;
 
-  this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
+  this.getNewComments().each(function() {
     var $comment = $(this);
 
     $comment.addClass('fcf-comment');
@@ -302,6 +303,10 @@ CommentList.prototype.processNewComments = function() {
   }
 };
 
+CommentList.prototype.getNewComments = function() {
+  return this.$el.find('.UFIComment:not(.fcf-comment)');
+};
+
 CommentList.prototype.getCount = function() {
   return this.$el.find('.fcf-comment').length;
 };
@@ -313,6 +318,7 @@ CommentList.prototype.filterComments = function() {
   this.$el.toggleClass('fcf-filter-mode', !!filter.length);
 
   if (!filter.length) {
+    this.toggleNoComments(false);
     return;
   }
 
@@ -366,7 +372,7 @@ CommentList.prototype.toggleNoComments = function(needShow) {
 };
 
 CommentList.prototype.fetchComments = function() {
-  var pager = this.$el.find('.UFIPagerLink')[0];
+  var pager = this.$el.find('.UFIPagerLink').last()[0];
 
   if (pager) {
     pager.click();
@@ -374,6 +380,45 @@ CommentList.prototype.fetchComments = function() {
   }
 
   return false;
+};
+
+var PageCommentList = function($el, owner, filter, users) {
+  CommentList.apply(this, arguments);
+
+  this.$noComments.removeClass('UFIRow UFIFirstCommentComponent');
+};
+
+PageCommentList.prototype = Object.create(CommentList.prototype);
+PageCommentList.prototype.constructor = PageCommentList;
+
+PageCommentList.prototype.filterComments = function() {
+  CommentList.prototype.filterComments.call(this);
+
+  if (this.filter.length) {
+    this.$el.closest('form').removeClass('collapsed_comments');
+
+    if (this.$el.find('.fcf-last-comment').next('.UFIReplyList').length) {
+      this.$el.find('.fcf-last-comment').removeClass('fcf-last-comment');
+    }
+  }
+};
+
+PageCommentList.prototype.toggleNoComments = function(needShow) {
+  if (needShow) {
+    if (!this.$el.find('.fcf-no-comments').length) {
+      if (this.$el.find('.UFIAddCommentLink').length) {
+        this.$el.find('.UFIAddCommentLink').before(this.$noComments);
+      } else {
+        this.$el.append(this.$noComments);
+      }
+    }
+  } else {
+    this.$el.find('.fcf-no-comments').remove();
+  }
+};
+
+PageCommentList.prototype.getNewComments = function() {
+  return this.$el.find('> .UFIComment:not(.fcf-comment)');
 };
 
 // User List
@@ -492,7 +537,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '</a>'
     +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
-    +   '<div class="fcf-user-filter-list"><ul><li>No users</li></ul></div>'
+    +   '<div class="fcf-user-filter-list"><ul><li>Loading...</li></ul></div>'
     + '</div></div>');
 
   this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
@@ -515,6 +560,8 @@ var UserFilterPanel = function($el, owner, filter, users) {
   this.$userList = this.$panel.find('.fcf-user-filter-list');
 
   this.$selectedUsers = this.$panel.find('.fcf-selected-users');
+
+  this.$noUsers = $('<li class="fcf-no-users">No Users</li>');
 
   this.$openLink.on('click', function() {
     that.$userList.toggle();
@@ -577,7 +624,7 @@ UserFilterPanel.prototype.updateUsers = function() {
   });
 
   if (!count) {
-    $userList.append('<li>No users</li>');
+    $userList.append(this.$noUsers);
   }
 
   this.$userList.find('ul').replaceWith($userList);
@@ -595,7 +642,7 @@ UserFilterPanel.prototype.updateSelectedUsers = function() {
     var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + ' comments"></a>');
 
     user.fetchImageUrl(function(imageUrl) {
-      $user.append($('<img src="' + imageUrl + '" width="23px;" height="23px;" />'));
+      $user.append($('<img src="' + imageUrl + '" width="23" height="23" />'));
     });
 
     $selectedList.append($user);

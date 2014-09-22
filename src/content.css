@@ -1,6 +1,6 @@
 /* Filter Panel */
 .fcf-content .fcf-panel {
-    padding: 5px 12px;
+    padding: 4px 12px;
     height: 23px;
     position: relative;
     border-top: 1px solid #e1e2e3;
@@ -43,7 +43,7 @@
 .fcf-content .fcf-panel .fcf-user-filter-list {
     display: none;
     position: absolute;
-    top: 30px;
+    top: 32px;
     right: 0;
     width: 180px;
     z-index: 10;
@@ -68,6 +68,10 @@
     cursor: pointer;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list .fcf-no-users {
+    text-align: center;
 }
 
 .fcf-content .fcf-panel .fcf-user-filter-list li span {
@@ -144,4 +148,21 @@
     position: absolute;
     right: 0;
     bottom: -4px;
+}
+
+/* Page Comment List */
+.fcf-content .fcf-comment-list.fcf-filter-mode .UFIReplyList {
+    display: none;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList {
+    display: block;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList .UFIComment {
+    display: block;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments + .UFIAddCommentLink {
+    display: none;
 }
