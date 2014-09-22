@@ -278,7 +278,7 @@ CommentList.prototype.processNewComments = function() {
       users = [],
       count = 0;
 
-  this.$el.find('.UFIComment:not(.fcf-comment)').each(function() {
+  this.getNewComments().each(function() {
     var $comment = $(this);
 
     $comment.addClass('fcf-comment');
@@ -301,6 +301,10 @@ CommentList.prototype.processNewComments = function() {
   if (count) {
     this.filterComments();
   }
+};
+
+CommentList.prototype.getNewComments = function() {
+  return this.$el.find('.UFIComment:not(.fcf-comment)');
 };
 
 CommentList.prototype.getCount = function() {
@@ -392,6 +396,10 @@ PageCommentList.prototype.filterComments = function() {
 
   if (this.filter.length) {
     this.$el.closest('form').removeClass('collapsed_comments');
+
+    if (this.$el.find('.fcf-last-comment').next('.UFIReplyList').length) {
+      this.$el.find('.fcf-last-comment').removeClass('fcf-last-comment');
+    }
   }
 };
 
@@ -407,6 +415,10 @@ PageCommentList.prototype.toggleNoComments = function(needShow) {
   } else {
     this.$el.find('.fcf-no-comments').remove();
   }
+};
+
+PageCommentList.prototype.getNewComments = function() {
+  return this.$el.find('> .UFIComment:not(.fcf-comment)');
 };
 
 // User List

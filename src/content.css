@@ -150,3 +150,11 @@
 .fcf-content .fcf-comment-list.fcf-filter-mode .UFIReplyList {
     display: none;
 }
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList {
+    display: block;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList .UFIComment {
+    display: block;
+}
