@@ -130,6 +130,22 @@ PageFeed.prototype.createContent = function(id, $content) {
   return new PageContent(id, $content);
 };
 
+// Popup Post
+var PopupPost = function() {
+  SingleFeedPost.call(this);
+};
+
+PopupPost.prototype = Object.create(SingleFeedPost.prototype);
+PopupPost.prototype.constructor = PopupPost;
+
+PopupPost.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.fbPhotoSnowliftContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
 // User
 var User = function($el) {
   this.$el = $el;
@@ -774,6 +790,8 @@ var App = function() {
   this.pages['single_feed_post'] = new SingleFeedPost();
   this.pages['page_feed'] = new PageFeed();
 
+  this.popup = new PopupPost();
+
   var that = this;
 
   setInterval(function() {
@@ -784,6 +802,8 @@ var App = function() {
         that.pages[i].toggleTracking(i === page);
       }
     }
+
+    that.popup.toggleTracking(that.isPopupOpen());
   }, 1000);
 };
 
@@ -800,6 +820,10 @@ App.prototype.detectPage = function() {
 
   return false;
 };
+
+App.prototype.isPopupOpen = function() {
+  return !!$('.fbPhotoSnowlift[aria-busy="false"]').length;
+}
 
 // Initialize
 new App();
