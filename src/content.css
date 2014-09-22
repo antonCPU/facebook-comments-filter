@@ -170,3 +170,7 @@
 .fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments + .UFIAddCommentLink {
     display: none;
 }
+
+.fcf-content .fbPhotosSnowliftUfi .fcf-comment-list .fcf-no-comments {
+    background-color: #edeff4;
+}

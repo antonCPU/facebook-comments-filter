@@ -316,8 +316,12 @@ Content.prototype.refresh = function($el) {
 };
 
 Content.prototype.createCommentList = function() {
-  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
+  var CommentPrototype = this.isPageComments() ? PageCommentList : CommentList;
   return new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+};
+
+Content.prototype.isPageComments = function() {
+  return !!(this.$el.find('.UFIOrderingModeSelectorPopover').length || this.$el.find('.UFIBlingBox').length);
 };
 
 Content.prototype.createFilterPanel = function() {
@@ -357,7 +361,7 @@ PopupContent.prototype.createFilterPanel = function() {
 };
 
 PopupContent.prototype.createCommentList = function() {
-  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
+  var CommentPrototype = this.isPageComments() ? PageCommentList : CommentList;
   return new CommentPrototype(this.$el.find('.UFIList').eq(0), this.owner, this.filter, this.users);
 };
 
