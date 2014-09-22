@@ -162,3 +162,7 @@
 .fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList .UFIComment {
     display: block;
 }
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments + .UFIAddCommentLink {
+    display: none;
+}
