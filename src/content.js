@@ -405,7 +405,7 @@ CommentList.prototype.toggleNoComments = function(needShow) {
 };
 
 CommentList.prototype.fetchComments = function() {
-  var pager = this.$el.find('.UFIPagerLink').last()[0];
+  var pager = this.$el.find('.UFIPagerLink')[0];
 
   if (pager) {
     pager.click();
@@ -452,6 +452,17 @@ PageCommentList.prototype.toggleNoComments = function(needShow) {
 
 PageCommentList.prototype.getNewComments = function() {
   return this.$el.find('> .UFIComment:not(.fcf-comment)');
+};
+
+PageCommentList.prototype.fetchComments = function() {
+  var pager = this.$el.find('> .UFIPagerRow .UFIPagerLink').last()[0];
+
+  if (pager) {
+    pager.click();
+    return true;
+  }
+
+  return false;
 };
 
 // User List
