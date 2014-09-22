@@ -88,13 +88,13 @@ UserTimeline.prototype.parseContentId = function($content) {
   return data ? data.contentid : null;
 };
 
-// Single Page Content
+// Single Feed Post
 var SingleFeedPost = function() {
   NewsFeed.call(this);
 };
 
 SingleFeedPost.prototype = Object.create(NewsFeed.prototype);
-SingleFeedPost.prototype.constructor = UserTimeline;
+SingleFeedPost.prototype.constructor = SingleFeedPost;
 
 SingleFeedPost.prototype.parseContentId = function() {
   return 'page';
@@ -118,6 +118,10 @@ SingleFeedPost.prototype.stopTracking = function() {
   }
 };
 
+SingleFeedPost.prototype.createContent = function(id, $content) {
+  return new PageContent(id, $content);
+};
+
 // Page Feed
 var PageFeed = function() {
   UserTimeline.call(this);
@@ -128,6 +132,82 @@ PageFeed.prototype.constructor = PageFeed;
 
 PageFeed.prototype.createContent = function(id, $content) {
   return new PageContent(id, $content);
+};
+
+// Popup Post
+var PopupPost = function() {
+  NewsFeed.call(this);
+};
+
+PopupPost.prototype = Object.create(NewsFeed.prototype);
+PopupPost.prototype.constructor = PopupPost;
+
+PopupPost.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.fbPhotoSnowliftContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
+PopupPost.prototype.createContent = function(id, $content) {
+  return new PopupContent(id, $content);
+};
+
+PopupPost.prototype.parseContentId = function() {
+  return window.location.href;
+};
+
+PopupPost.prototype.startTracking = function() {
+  var that = this;
+
+  if (this.isTracking) {
+    return;
+  }
+
+  this.isTracking = true;
+
+  this.contentList = {};
+
+  this.interval = setInterval(function() {
+    that.processNewContent();
+  }, this.trackingPeriod);
+
+  this.processNewContent();
+};
+
+// Photo Page
+var PhotoPage = function() {
+  PopupPost.call(this);
+};
+
+PhotoPage.prototype = Object.create(PopupPost.prototype);
+PhotoPage.prototype.constructor = PhotoPage;
+
+PhotoPage.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.photoUfiContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
+PhotoPage.prototype.startTracking = function() {
+  if (this.isTracking) {
+    return;
+  }
+
+  this.isTracking = true;
+
+  this.contentList = {};
+
+  this.processNewContent();
+};
+
+PhotoPage.prototype.stopTracking = function() {
+  if (this.isTracking) {
+    this.isTracking = false;
+  }
 };
 
 // User
@@ -218,7 +298,7 @@ Content.prototype.init = function() {
   this.filter = new UserFilter();
   this.users  = new UserList();
 
-  this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
+  this.filterPanel = this.createFilterPanel();
 
   this.comments = this.createCommentList();
 
@@ -236,8 +316,20 @@ Content.prototype.refresh = function($el) {
 };
 
 Content.prototype.createCommentList = function() {
-  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
+  var CommentPrototype = this.isPageComments() ? PageCommentList : CommentList;
   return new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
+};
+
+Content.prototype.isPageComments = function() {
+  return !!(this.$el.find('.UFIOrderingModeSelectorPopover').length || this.$el.find('.UFIBlingBox').length);
+};
+
+Content.prototype.createFilterPanel = function() {
+  var $panel = $('<div class="fcf-panel"></div>');
+
+  this.$el.find('.UFIContainer').before($panel);
+
+  return new UserFilterPanel($panel, this.owner, this.filter, this.users);
 };
 
 // Page Content
@@ -252,6 +344,26 @@ PageContent.prototype.createCommentList = function() {
   return new PageCommentList(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
 };
 
+// Popup Content
+var PopupContent = function(id, $el) {
+  Content.apply(this, arguments);
+};
+
+PopupContent.prototype = Object.create(Content.prototype);
+PopupContent.prototype.constructor = PopupContent;
+
+PopupContent.prototype.createFilterPanel = function() {
+  var $panel = $('<div class="fcf-panel"></div>');
+
+  this.$el.find('.UFIContainer').parent().prepend($panel);
+
+  return new UserFilterPanel($panel, this.owner, this.filter, this.users);
+};
+
+PopupContent.prototype.createCommentList = function() {
+  var CommentPrototype = this.isPageComments() ? PageCommentList : CommentList;
+  return new CommentPrototype(this.$el.find('.UFIList').eq(0), this.owner, this.filter, this.users);
+};
 
 // Content User
 var ContentOwner = function($content) {
@@ -405,7 +517,7 @@ CommentList.prototype.toggleNoComments = function(needShow) {
 };
 
 CommentList.prototype.fetchComments = function() {
-  var pager = this.$el.find('.UFIPagerLink').last()[0];
+  var pager = this.$el.find('.UFIPagerLink')[0];
 
   if (pager) {
     pager.click();
@@ -452,6 +564,17 @@ PageCommentList.prototype.toggleNoComments = function(needShow) {
 
 PageCommentList.prototype.getNewComments = function() {
   return this.$el.find('> .UFIComment:not(.fcf-comment)');
+};
+
+PageCommentList.prototype.fetchComments = function() {
+  var pager = this.$el.find('> .UFIPagerRow .UFIPagerLink').last()[0];
+
+  if (pager) {
+    pager.click();
+    return true;
+  }
+
+  return false;
 };
 
 // User List
@@ -562,8 +685,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
 
   var that = this;
 
-  this.$panel = $('<div class="fcf-panel">'
-    + '<div class="fcf-panel-content">'
+  this.$el.append($('<div class="fcf-panel-content">'
     +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments"></a>'
     +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
@@ -571,28 +693,28 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
     +   '<div class="fcf-user-filter-list"><ul><li>Loading...</li></ul></div>'
-    + '</div></div>');
+    + '</div>'
+  ));
 
-  this.$panel.find('a.fcf-show-owner-comments').on('click', function() {
+  this.$el.find('a.fcf-show-owner-comments').on('click', function() {
     that.filter.add(that.owner);
   });
 
-  this.$panel.find('a.fcf-show-all-comments').on('click', function() {
+  this.$el.find('a.fcf-show-all-comments').on('click', function() {
     that.filter.clear();
   });
 
-  that.$el.find('.UFIContainer').before(that.$panel);
 
   this.owner.fetchImageUrl(function(imageUrl) {
     var $ownerImage = $('<img src="' + imageUrl + '" width="23" height="23" />');
-    that.$panel.find('.fcf-show-owner-comments').append($ownerImage);
+    that.$el.find('.fcf-show-owner-comments').append($ownerImage);
   });
 
-  this.$openLink = this.$panel.find('.fcf-user-filter-show');
+  this.$openLink = this.$el.find('.fcf-user-filter-show');
 
-  this.$userList = this.$panel.find('.fcf-user-filter-list');
+  this.$userList = this.$el.find('.fcf-user-filter-list');
 
-  this.$selectedUsers = this.$panel.find('.fcf-selected-users');
+  this.$selectedUsers = this.$el.find('.fcf-selected-users');
 
   this.$noUsers = $('<li class="fcf-no-users">No Users</li>');
 
@@ -633,7 +755,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
 };
 
 UserFilterPanel.prototype.toggle = function(show) {
-  this.$panel.toggle(show);
+  this.$el.toggle(show);
 };
 
 UserFilterPanel.prototype.updateUsers = function() {
@@ -666,8 +788,8 @@ UserFilterPanel.prototype.updateUsers = function() {
 UserFilterPanel.prototype.updateSelectedUsers = function() {
   var $selectedList = this.$selectedUsers;
 
-  this.$panel.toggleClass('fcf-filter-mode', !!this.filter.length);
-  this.$panel.find('.fcf-show-owner-comments').toggle(!this.filter.has(this.owner));
+  this.$el.toggleClass('fcf-filter-mode', !!this.filter.length);
+  this.$el.find('.fcf-show-owner-comments').toggle(!this.filter.has(this.owner));
 
   $selectedList.empty();
 
@@ -762,6 +884,9 @@ var App = function() {
   this.pages['user_time_line'] = new UserTimeline();
   this.pages['single_feed_post'] = new SingleFeedPost();
   this.pages['page_feed'] = new PageFeed();
+  this.pages['photo_page'] = new PhotoPage();
+
+  this.popup = new PopupPost();
 
   var that = this;
 
@@ -773,6 +898,8 @@ var App = function() {
         that.pages[i].toggleTracking(i === page);
       }
     }
+
+    that.popup.toggleTracking(that.isPopupOpen());
   }, 1000);
 };
 
@@ -785,10 +912,16 @@ App.prototype.detectPage = function() {
     return 'single_feed_post';
   } else if ($('[id^="PagePostsPagelet"]').length) {
     return 'page_feed';
+  } else if ($('#fbPhotoPageContainer').length) {
+    return 'photo_page';
   }
 
   return false;
 };
+
+App.prototype.isPopupOpen = function() {
+  return !!$('.fbPhotoSnowlift[aria-busy="false"]').length;
+}
 
 // Initialize
 new App();

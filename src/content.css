@@ -115,6 +115,10 @@
     display: block;
 }
 
+.fcf-content.fbPhotoSnowliftContainer .fcf-panel {
+    padding: 4px 0;
+}
+
 /* Comment List */
 .fcf-content .fcf-comment-list .fcf-no-comments {
     display: none;
@@ -165,4 +169,8 @@
 
 .fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments + .UFIAddCommentLink {
     display: none;
+}
+
+.fcf-content .fbPhotosSnowliftUfi .fcf-comment-list .fcf-no-comments {
+    background-color: #edeff4;
 }
