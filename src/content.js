@@ -204,7 +204,7 @@ Content.prototype.init = function() {
 
   this.filterPanel = new UserFilterPanel(this.$el.find('.UFIContainer').parent(), this.owner, this.filter, this.users);
 
-  var CommentPrototype = this.$el.find('.UFIList .UFIOrderingModeSelector').length ? PageCommentList : CommentList;
+  var CommentPrototype = this.$el.find('.UFIBlingBox').length ? PageCommentList : CommentList;
   this.comments = new CommentPrototype(this.$el.find('.UFIList'), this.owner, this.filter, this.users);
 
   if (!this.filter.length) {
@@ -368,7 +368,7 @@ CommentList.prototype.toggleNoComments = function(needShow) {
 };
 
 CommentList.prototype.fetchComments = function() {
-  var pager = this.$el.find('.UFIPagerLink')[0];
+  var pager = this.$el.find('.UFIPagerLink').last()[0];
 
   if (pager) {
     pager.click();
@@ -386,6 +386,14 @@ var PageCommentList = function($el, owner, filter, users) {
 
 PageCommentList.prototype = Object.create(CommentList.prototype);
 PageCommentList.prototype.constructor = PageCommentList;
+
+PageCommentList.prototype.filterComments = function() {
+  CommentList.prototype.filterComments.call(this);
+
+  if (this.filter.length) {
+    this.$el.closest('form').removeClass('collapsed_comments');
+  }
+};
 
 PageCommentList.prototype.toggleNoComments = function(needShow) {
   if (needShow) {
