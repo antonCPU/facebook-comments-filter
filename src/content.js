@@ -692,7 +692,10 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '</a>'
     +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
-    +   '<div class="fcf-user-filter-list"><ul><li>Loading...</li></ul></div>'
+    +   '<div class="fcf-user-filter-list">'
+    +     '<div class="fcf-user-search"><form><input type="text" value="" placeholder="Filter Users" /></form></div>'
+    +     '<ul><li>Loading...</li></ul>'
+    +   '</div>'
     + '</div>'
   ));
 
@@ -704,7 +707,6 @@ var UserFilterPanel = function($el, owner, filter, users) {
     that.filter.clear();
   });
 
-
   this.owner.fetchImageUrl(function(imageUrl) {
     var $ownerImage = $('<img src="' + imageUrl + '" width="23" height="23" />');
     that.$el.find('.fcf-show-owner-comments').append($ownerImage);
@@ -715,6 +717,8 @@ var UserFilterPanel = function($el, owner, filter, users) {
   this.$userList = this.$el.find('.fcf-user-filter-list');
 
   this.$selectedUsers = this.$el.find('.fcf-selected-users');
+
+  this.$userSearch = this.$el.find('.fcf-user-search');
 
   this.$noUsers = $('<li class="fcf-no-users">No Users</li>');
 
@@ -744,6 +748,14 @@ var UserFilterPanel = function($el, owner, filter, users) {
     that.filter.removeById($(this).data('id'));
   });
 
+  this.$userSearch.find('input').on('keyup', function() {
+    that.filterUserList($(this).val());
+  });
+
+  this.$userSearch.find('form').on('submit', function() {
+    return false;
+  });
+
   this.users.onChange(function() {
     that.updateUsers();
   });
@@ -752,6 +764,21 @@ var UserFilterPanel = function($el, owner, filter, users) {
     that.updateUsers();
     that.updateSelectedUsers();
   });
+};
+
+UserFilterPanel.prototype.filterUserList = function(text) {
+  var $users = this.$userList.find('li');
+  $users.show();
+
+  if (text) {
+    $users.each(function() {
+      var $user = $(this);
+
+      if ($user.text().search(new RegExp(text, 'ig')) === -1) {
+        $user.hide();
+      }
+    });
+  }
 };
 
 UserFilterPanel.prototype.toggle = function(show) {
@@ -781,6 +808,8 @@ UserFilterPanel.prototype.updateUsers = function() {
   if (!count) {
     $userList.append(this.$noUsers);
   }
+
+  this.$userSearch.toggle(count > 6);
 
   this.$userList.find('ul').replaceWith($userList);
 };
