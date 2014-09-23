@@ -652,6 +652,12 @@ UserList.prototype.triggerOnChange = function() {
   });
 };
 
+UserList.prototype.filterByName = function(name) {
+  return this.list.filter(function(user) {
+     return user.getName().search(new RegExp(name, 'ig')) > -1;
+  });
+};
+
 // User Filter
 var UserFilter = function() {
   UserList.call(this);
@@ -761,6 +767,17 @@ var UserFilterPanel = function($el, owner, filter, users) {
   });
 
   this.$userSearch.find('form').on('submit', function() {
+    var text = $(this).find('input').val();
+
+    if (text) {
+      var users = that.users.filterByName(text);
+
+      if (users.length) {
+        that.filter.add(users[0]);
+      }
+    }
+
+    that.$userList.toggle();
     return false;
   });
 
@@ -776,18 +793,17 @@ var UserFilterPanel = function($el, owner, filter, users) {
 
 UserFilterPanel.prototype.filterUserList = function(text) {
   var $users = this.$userList.find('li');
-  $users.show();
 
   this.search = text;
 
   if (text) {
-    $users.each(function() {
-      var $user = $(this);
+    $users.hide();
 
-      if ($user.text().search(new RegExp(text, 'ig')) === -1) {
-        $user.hide();
-      }
+    this.users.filterByName(text).forEach(function(user) {
+      $users.filter('[data-id="' + user.getId() + '"]').show();
     });
+  } else {
+    $users.show();
   }
 };
 
