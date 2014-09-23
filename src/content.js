@@ -682,6 +682,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
   this.owner = owner;
   this.filter = filter;
   this.users = users;
+  this.search = null;
 
   var that = this;
 
@@ -693,7 +694,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
     +   '<div class="fcf-selected-users"></div>'
     +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
     +   '<div class="fcf-user-filter-list">'
-    +     '<div class="fcf-user-search"><form><input type="text" value="" placeholder="Filter Users" /></form></div>'
+    +     '<div class="fcf-user-search"><form><input type="text" value="" placeholder="Find a user" /></form></div>'
     +     '<ul><li>Loading...</li></ul>'
     +   '</div>'
     + '</div>'
@@ -724,6 +725,13 @@ var UserFilterPanel = function($el, owner, filter, users) {
 
   this.$openLink.on('click', function() {
     that.$userList.toggle();
+
+    if (that.$userList.is(':visible')) {
+      that.$userSearch.find('input').val('');
+      that.search = null;
+
+      that.updateUsers();
+    }
   });
 
   this.$userList.on('click', 'li', function() {
@@ -770,6 +778,8 @@ UserFilterPanel.prototype.filterUserList = function(text) {
   var $users = this.$userList.find('li');
   $users.show();
 
+  this.search = text;
+
   if (text) {
     $users.each(function() {
       var $user = $(this);
@@ -789,6 +799,10 @@ UserFilterPanel.prototype.updateUsers = function() {
   var $userList = $('<ul></ul>'),
       filter = this.filter,
       count = 0;
+
+  if (this.search) {
+    return;
+  }
 
   this.users.forEach(function(user) {
     if (!filter.has(user)) {
