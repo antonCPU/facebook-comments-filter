@@ -1,0 +1,39 @@
+{
+  "ext_name": {
+    "message": "Comments Filter for Facebook"
+  },
+  "ext_desc": {
+    "message": "Simplifies search of comments."
+  },
+  "no_comments": {
+    "message": "No comments"
+  },
+  "show_user_comments": {
+    "message": "Show $USER$'s comments",
+    "placeholders": {
+      "user": {
+        "content": "$1"
+      }
+    }
+  },
+  "hide_user_comments": {
+    "message": "Hide $USER$'s comments",
+    "placeholders": {
+      "user": {
+        "content": "$1"
+      }
+    }
+  },
+  "show_all_comments": {
+    "message": "Show all comments"
+  },
+  "show_other_users_comments": {
+    "message": "Other users' comments"
+  },
+  "find_user": {
+    "message": "Find a user"
+  },
+  "no_users": {
+    "message": "No Users"
+  }
+}

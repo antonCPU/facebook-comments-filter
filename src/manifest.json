@@ -1,9 +1,10 @@
 {
   "manifest_version": 2,
 
-  "name": "Comments Filter for Facebook",
-  "description": "Simplifies search of comments.",
-  "version": "0.11.2",
+  "name": "__MSG_ext_name__",
+  "description": "__MSG_ext_desc__",
+  "version": "0.11.3",
+  "default_locale": "en",
 
   "content_scripts": [
     {
