@@ -119,6 +119,18 @@
     padding: 4px 0;
 }
 
+.fcf-content .fcf-panel .fcf-user-search {
+    padding: 2px 3px;
+}
+
+.fcf-content .fcf-panel .fcf-user-search input {
+    width: 166px;
+    height: 23px;
+    margin: 0;
+    color: #9197a3;
+    padding: 0 2px;
+}
+
 /* Comment List */
 .fcf-content .fcf-comment-list .fcf-no-comments {
     display: none;
