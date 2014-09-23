@@ -1,0 +1,39 @@
+{
+  "ext_name": {
+    "message": "Поиск комментариев для Facebook"
+  },
+  "ext_desc": {
+    "message": "Упрощает поиск комментариев"
+  },
+  "no_comments": {
+    "message": "Нет комментариев"
+  },
+  "show_user_comments": {
+    "message": "Показать комментарии: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1"
+      }
+    }
+  },
+  "hide_user_comments": {
+    "message": "Скрыть комментарии: $USER$",
+    "placeholders": {
+      "user": {
+        "content": "$1"
+      }
+    }
+  },
+  "show_all_comments": {
+    "message": "Показать все комментарии"
+  },
+  "show_other_users_comments": {
+    "message": "Комментарии других пользователей"
+  },
+  "find_user": {
+    "message": "Искать пользователя"
+  },
+  "no_users": {
+    "message": "Нет пользователей"
+  }
+}
