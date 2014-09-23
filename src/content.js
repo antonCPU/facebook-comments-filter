@@ -395,7 +395,7 @@ var CommentList = function($el, owner, filter, users) {
   this.filter = filter;
   this.users = users;
 
-  this.$noComments = $('<li class="UFIRow UFIFirstCommentComponent fcf-no-comments">No comments</li>');
+  this.$noComments = $('<li class="UFIRow UFIFirstCommentComponent fcf-no-comments">' + chrome.i18n.getMessage('no_comments') + '</li>');
 
   var that = this;
 
@@ -693,15 +693,15 @@ var UserFilterPanel = function($el, owner, filter, users) {
   var that = this;
 
   this.$el.append($('<div class="fcf-panel-content">'
-    +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + '\'s comments"></a>'
-    +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
+    +   '<a href="#" class="fcf-show-owner-comments" title="' + chrome.i18n.getMessage('show_user_comments', this.owner.getName()) + '"></a>'
+    +   '<a href="#" class="fcf-show-all-comments" title="' + chrome.i18n.getMessage('show_all_comments') + '">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     +   '</a>'
     +   '<div class="fcf-selected-users"></div>'
-    +   '<a href="#" class="fcf-user-filter-show" title="Show other users\' comments">+</a>'
+    +   '<a href="#" class="fcf-user-filter-show" title="' + chrome.i18n.getMessage('show_other_users_comments') + '">+</a>'
     +   '<div class="fcf-user-filter-list">'
-    +     '<div class="fcf-user-search"><form><input type="text" value="" placeholder="Find a user" /></form></div>'
-    +     '<ul><li>Loading...</li></ul>'
+    +     '<div class="fcf-user-search"><form><input type="text" value="" placeholder="' + chrome.i18n.getMessage('find_user') + '" /></form></div>'
+    +     '<ul></ul>'
     +   '</div>'
     + '</div>'
   ));
@@ -727,7 +727,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
 
   this.$userSearch = this.$el.find('.fcf-user-search');
 
-  this.$noUsers = $('<li class="fcf-no-users">No Users</li>');
+  this.$noUsers = $('<li class="fcf-no-users">' + chrome.i18n.getMessage('no_users') + '</li>');
 
   this.$openLink.on('click', function() {
     that.$userList.toggle();
@@ -853,7 +853,7 @@ UserFilterPanel.prototype.updateSelectedUsers = function() {
   $selectedList.empty();
 
   this.filter.forEach(function(user) {
-    var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + '\'s comments"></a>');
+    var $user = $('<a href="#" data-id="' + user.getId() + '" title="' + chrome.i18n.getMessage('hide_user_comments', user.getName()) + '"></a>');
 
     user.fetchImageUrl(function(imageUrl) {
       $user.append($('<img src="' + imageUrl + '" width="23" height="23" />'));
@@ -879,7 +879,10 @@ Comment.prototype.toggleActions = function(show) {
     var mentionedUser = this.getMentionedUser();
 
     if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
-      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments" title="Show ' + mentionedUser.getName() + '\'s comments"><img src="" width="20" height="20" /></a>');
+      this.$showAuthorComments = $(''
+        + '<a href="#" class="fcf-show-author-comments" title="' + chrome.i18n.getMessage('show_user_comments', mentionedUser.getName()) + '">'
+        +  '<img src="" width="20" height="20" />'
+        + '</a>');
 
       mentionedUser.fetchImageUrl(function(imageUrl) {
         that.$showAuthorComments.find('img').attr('src', imageUrl);
