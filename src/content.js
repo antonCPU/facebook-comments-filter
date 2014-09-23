@@ -693,7 +693,7 @@ var UserFilterPanel = function($el, owner, filter, users) {
   var that = this;
 
   this.$el.append($('<div class="fcf-panel-content">'
-    +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + ' comments"></a>'
+    +   '<a href="#" class="fcf-show-owner-comments" title="Show ' + this.owner.getName() + '\'s comments"></a>'
     +   '<a href="#" class="fcf-show-all-comments" title="Show All Comments">'
     +     '<img src="' + chrome.extension.getURL("comment.png") + '" width="23" height="23" />'
     +   '</a>'
@@ -853,7 +853,7 @@ UserFilterPanel.prototype.updateSelectedUsers = function() {
   $selectedList.empty();
 
   this.filter.forEach(function(user) {
-    var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + ' comments"></a>');
+    var $user = $('<a href="#" data-id="' + user.getId() + '" title="Hide ' + user.getName() + '\'s comments"></a>');
 
     user.fetchImageUrl(function(imageUrl) {
       $user.append($('<img src="' + imageUrl + '" width="23" height="23" />'));
@@ -879,7 +879,7 @@ Comment.prototype.toggleActions = function(show) {
     var mentionedUser = this.getMentionedUser();
 
     if (mentionedUser && !this.$el.find('.fcf-show-author-comments').length) {
-      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments" title="Show ' + mentionedUser.getName() + ' comments"><img src="" width="20" height="20" /></a>');
+      this.$showAuthorComments = $('<a href="#" class="fcf-show-author-comments" title="Show ' + mentionedUser.getName() + '\'s comments"><img src="" width="20" height="20" /></a>');
 
       mentionedUser.fetchImageUrl(function(imageUrl) {
         that.$showAuthorComments.find('img').attr('src', imageUrl);
