@@ -74,18 +74,8 @@ var UserTimeline = function() {
 UserTimeline.prototype = Object.create(NewsFeed.prototype);
 UserTimeline.prototype.constructor = UserTimeline;
 
-UserTimeline.prototype.processNewContent = function() {
-  var that = this;
-
-  $('.timelineUnitContainer').each(function() {
-    that.addContent($(this));
-  });
-};
-
 UserTimeline.prototype.parseContentId = function($content) {
-  var data = $content.data('gt');
-
-  return data ? data.contentid : null;
+  return $content.parent().attr('id');
 };
 
 // Single Feed Post
@@ -132,6 +122,20 @@ PageFeed.prototype.constructor = PageFeed;
 
 PageFeed.prototype.createContent = function(id, $content) {
   return new PageContent(id, $content);
+};
+
+PageFeed.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.timelineUnitContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
+PageFeed.prototype.parseContentId = function($content) {
+  var data = $content.data('gt');
+
+  return data ? data.contentid : null;
 };
 
 // Popup Post
@@ -265,11 +269,12 @@ User.prototype.fetchHovercardImageUrl = function(callback) {
     dataType: 'text',
     url: url,
     success: function(data) {
-      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/);
+      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+(\.jpg|\.png)\?[^">]+)\\"/);
 
       if (!imageUrl) {
         callback(false);
       } else {
+        imageUrl.pop();
         imageUrl = JSON.parse('"' + imageUrl.pop() + '"').replace(/&amp;/g, '&');
 
         callback(imageUrl);

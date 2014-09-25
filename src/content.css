@@ -7,7 +7,7 @@
 }
 
 .fcf-content.userContentWrapper .fcf-panel {
-    width: 470px;
+    width: 100%;
     left: -12px;
     bottom: -8px;
     background-color: #f6f7f8;
