@@ -269,11 +269,12 @@ User.prototype.fetchHovercardImageUrl = function(callback) {
     dataType: 'text',
     url: url,
     success: function(data) {
-      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+\.jpg\?[^">]+)\\"/);
+      var imageUrl = data.match(/img class=\\"_s0 _7lw _rv img\\" src=\\"([^">]+(\.jpg|\.png)\?[^">]+)\\"/);
 
       if (!imageUrl) {
         callback(false);
       } else {
+        imageUrl.pop();
         imageUrl = JSON.parse('"' + imageUrl.pop() + '"').replace(/&amp;/g, '&');
 
         callback(imageUrl);

@@ -1,13 +1,7 @@
-facebook-comments-filter
-========================
-
-Chrome extension to improve comments browsing on Facebook.
-
 Have you ever been in trouble finding comments of your friends or any other person you follow among dozens of other comments?
 This extension should help to solve this problem.
 
 Features:
-----------
 - Quickly filter by authors of posts, people who "commented on this".
 - Automatically search in "Previous comments" for people you selected.
 - Show all users participated in discussion with ability to add them to the filter. (Currently it's for visible comments only).
@@ -16,6 +10,5 @@ Features:
 - Quickly add people who were mentioned in comments to the filter.
 
 PS.
----
 New features are coming, just let me know if you're interested in this extension and find it useful.
 Any suggestions are welcome!
