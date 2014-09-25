@@ -124,6 +124,20 @@ PageFeed.prototype.createContent = function(id, $content) {
   return new PageContent(id, $content);
 };
 
+PageFeed.prototype.processNewContent = function() {
+  var that = this;
+
+  $('.timelineUnitContainer').each(function() {
+    that.addContent($(this));
+  });
+};
+
+PageFeed.prototype.parseContentId = function($content) {
+  var data = $content.data('gt');
+
+  return data ? data.contentid : null;
+};
+
 // Popup Post
 var PopupPost = function() {
   NewsFeed.call(this);
