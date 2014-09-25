@@ -74,18 +74,8 @@ var UserTimeline = function() {
 UserTimeline.prototype = Object.create(NewsFeed.prototype);
 UserTimeline.prototype.constructor = UserTimeline;
 
-UserTimeline.prototype.processNewContent = function() {
-  var that = this;
-
-  $('.timelineUnitContainer').each(function() {
-    that.addContent($(this));
-  });
-};
-
 UserTimeline.prototype.parseContentId = function($content) {
-  var data = $content.data('gt');
-
-  return data ? data.contentid : null;
+  return $content.parent().attr('id');
 };
 
 // Single Feed Post
