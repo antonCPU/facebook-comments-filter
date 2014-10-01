@@ -1,0 +1,189 @@
+/* Filter Panel */
+.fcf-content .fcf-panel {
+    padding: 4px 12px;
+    height: 23px;
+    position: relative;
+    border-top: 1px solid #e1e2e3;
+}
+
+.fcf-content.userContentWrapper .fcf-panel {
+    width: 100%;
+    left: -12px;
+    bottom: -8px;
+    background-color: #f6f7f8;
+}
+
+.fcf-content.timelineUnitContainer .fcf-panel {
+    background-color: #fafbfb;
+}
+
+.fcf-content .fcf-panel .fcf-panel-content {
+    float: right;
+}
+
+.fcf-content .fcf-panel .fcf-show-owner-comments {
+    float: left;
+}
+
+.fcf-content .fcf-panel .fcf-show-all-comments {
+    float: left;
+    padding-left: 5px;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-show {
+    float: left;
+    padding-left: 5px;
+    font-size: 20px;
+    line-height: 20px;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-show:hover {
+    text-decoration: none;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list {
+    display: none;
+    position: absolute;
+    top: 32px;
+    right: 0;
+    width: 180px;
+    z-index: 10;
+
+    -webkit-background-clip: padding-box;
+    background-color: #fff;
+    border: 1px solid rgba(0, 0, 0, .15);
+    -webkit-border-radius: 3px;
+    -webkit-box-shadow: 0 3px 8px rgba(0, 0, 0, .3);
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list ul {
+    max-height: 222px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list li {
+    margin: 5px;
+    height: 26px;
+    line-height: 26px;
+    cursor: pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list .fcf-no-users {
+    text-align: center;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list li span {
+    line-height: 26px;
+    display: inline-block;
+}
+
+.fcf-content .fcf-panel .fcf-user-filter-list img {
+    vertical-align: middle;
+    padding-right: 5px;
+    float: left;
+}
+
+.fcf-content .fcf-panel .fcf-show-all-comments {
+    display: none;
+}
+
+.fcf-content .fcf-panel .fcf-show-author-comments {
+    display: none;
+}
+
+.fcf-content .fcf-panel.fcf-filter-mode .fcf-show-all-comments {
+    display: block;
+}
+
+.fcf-content .fcf-panel .fcf-selected-users {
+    display: none;
+    float: left;
+    margin-left: 5px;
+}
+
+.fcf-content .fcf-panel .fcf-selected-users a {
+    margin-left: 3px;
+}
+
+.fcf-content .fcf-panel .fcf-selected-users a:first-child {
+    margin-left: 0;
+}
+
+.fcf-content .fcf-panel.fcf-filter-mode .fcf-selected-users {
+    display: block;
+}
+
+.fcf-content.fbPhotoSnowliftContainer .fcf-panel {
+    padding: 4px 0;
+}
+
+.fcf-content .fcf-panel .fcf-user-search {
+    padding: 2px 3px;
+}
+
+.fcf-content .fcf-panel .fcf-user-search input {
+    width: 166px;
+    height: 23px;
+    margin: 0;
+    color: #9197a3;
+    padding: 0 2px;
+}
+
+/* Comment List */
+.fcf-content .fcf-comment-list .fcf-no-comments {
+    display: none;
+    text-align: center;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .UFIComment {
+    display: none;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment.fcf-comment-visible {
+    display: block;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible.fcf-last-comment {
+    padding-bottom: 8px;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments {
+    display: block;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+.fcf-content .fcf-comment-list .fcf-comment .fcf-show-author-comments {
+    display: none;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment .fcf-show-author-comments {
+    display: block;
+    position: absolute;
+    right: 0;
+    bottom: -4px;
+}
+
+/* Page Comment List */
+.fcf-content .fcf-comment-list.fcf-filter-mode .UFIReplyList {
+    display: none;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList {
+    display: block;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-comment-visible + .UFIReplyList .UFIComment {
+    display: block;
+}
+
+.fcf-content .fcf-comment-list.fcf-filter-mode .fcf-no-comments + .UFIAddCommentLink {
+    display: none;
+}
+
+.fcf-content .fbPhotosSnowliftUfi .fcf-comment-list .fcf-no-comments {
+    background-color: #edeff4;
+}
